@@ -18,8 +18,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "NetworkTests"
-               BuildableName = "NetworkTests"
-               BlueprintName = "NetworkTests"
+               BuildableName = "NetworkClientTests"
+               BlueprintName = "NetworkClientTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
