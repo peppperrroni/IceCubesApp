@@ -39,12 +39,7 @@ struct AppView: View {
   var body: some View {
     HStack(spacing: 0) {
       Group {
-        if #available(iOS 27.0, visionOS 27.0, *) {
-          tabBarView
-            .defaultTabBarPlacement(horizontalSizeClass == .regular ? .sidebar : .automatic)
-        } else {
-          tabBarView
-        }
+        tabBarView
       }
       .tabViewStyle(.sidebarAdaptable)
       if horizontalSizeClass == .regular
