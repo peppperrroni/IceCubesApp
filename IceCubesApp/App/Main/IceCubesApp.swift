@@ -42,6 +42,8 @@ struct IceCubesApp: App {
   @Namespace var namespace
 
   init() {
+    let benchDeps = deps  // local copy: the closure must not capture self during init
+    BenchHooks.start { BenchResolve.resolveAll(benchDeps) }
     _appAccountsManager = State(initialValue: deps.appAccountsManager)
     _currentInstance = State(initialValue: deps.currentInstance)
     _currentAccount = State(initialValue: deps.currentAccount)
