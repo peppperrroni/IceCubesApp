@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import Foundation
 import Models
@@ -6,7 +7,8 @@ import OSLog
 import Observation
 
 @MainActor
-@Observable public class StreamWatcher {
+@Instantiable
+@Observable public class StreamWatcher: Instantiable {
   private var client: MastodonClient?
   private var task: URLSessionWebSocketTask?
   private var watchedStreams: [Stream] = []

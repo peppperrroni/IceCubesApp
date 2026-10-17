@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import Env
 import Models
@@ -6,7 +7,8 @@ import Observation
 import SwiftUI
 
 @MainActor
-@Observable public class AppAccountsManager {
+@Instantiable
+@Observable public class AppAccountsManager: Instantiable {
   @AppStorage("latestCurrentAccountKey", store: UserPreferences.sharedDefault)
   public static var latestCurrentAccountKey: String = ""
 

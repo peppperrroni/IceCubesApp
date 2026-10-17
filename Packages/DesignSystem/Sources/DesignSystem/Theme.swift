@@ -1,9 +1,11 @@
+import SafeDI
 import Combine
 import SwiftUI
 
 @MainActor
 @Observable
-public final class Theme {
+@Instantiable
+public final class Theme: Instantiable {
   final class ThemeStorage {
     enum ThemeKey: String {
       case colorScheme, tint, label, primaryBackground, secondaryBackground

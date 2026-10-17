@@ -1,8 +1,10 @@
+import SafeDI
 import SwiftUI
 
 @MainActor
 @Observable
-public final class ToastCenter {
+@Instantiable
+public final class ToastCenter: Instantiable {
   public struct Toast: Identifiable, Equatable {
     public struct Action: Identifiable, Equatable {
       public let id: UUID

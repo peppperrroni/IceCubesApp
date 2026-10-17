@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import CryptoKit
 import Foundation
@@ -115,13 +116,14 @@ public struct HandledNotification: Equatable {
 }
 
 @MainActor
-@Observable public class PushNotificationsService: NSObject {
+@Instantiable
+@Observable public class PushNotificationsService: NSObject, Instantiable {
   enum Constants {
     static let endpoint = "https://icecubesrelay.fly.dev"
   }
 
   private let pushKeys = PushKeys()
-  private let userPreferences: UserPreferences
+  @Received private let userPreferences: UserPreferences
 
   public private(set) var subscriptions: [PushNotificationSubscriptionSettings] = []
 

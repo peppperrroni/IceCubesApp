@@ -1,10 +1,12 @@
+import SafeDI
 import Foundation
 import Models
 import SwiftUI
 
 @MainActor
 @Observable
-public class StatusEmbedCache {
+@Instantiable
+public class StatusEmbedCache: Instantiable {
   @ObservationIgnored private var cache: [URL: Status] = [:]
   @ObservationIgnored private var cacheById: [String: Status] = [:]
 

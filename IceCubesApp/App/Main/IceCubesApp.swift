@@ -42,6 +42,9 @@ struct IceCubesApp: App {
   @Namespace var namespace
 
   init() {
+    // Static helpers with no owner (Font, layoutPadding, DeepL key) read these.
+    Theme.current = deps.theme
+    UserPreferences.current = deps.userPreferences
     _appAccountsManager = State(initialValue: deps.appAccountsManager)
     _currentInstance = State(initialValue: deps.currentInstance)
     _currentAccount = State(initialValue: deps.currentAccount)

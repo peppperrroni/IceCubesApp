@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import Foundation
 import Models
@@ -5,7 +6,8 @@ import NetworkClient
 import Observation
 
 @MainActor
-@Observable public class CurrentInstance {
+@Instantiable
+@Observable public class CurrentInstance: Instantiable {
   public private(set) var instance: Instance?
 
   private var client: MastodonClient?

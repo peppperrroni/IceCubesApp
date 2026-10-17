@@ -1,10 +1,12 @@
+import SafeDI
 import Combine
 import Models
 import QuickLook
 import SwiftUI
 
 @MainActor
-@Observable public class QuickLook {
+@Instantiable
+@Observable public class QuickLook: Instantiable {
   public var selectedMediaAttachment: MediaAttachment?
   public var mediaAttachments: [MediaAttachment] = []
   

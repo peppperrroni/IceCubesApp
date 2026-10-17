@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import Foundation
 import Models
@@ -5,7 +6,8 @@ import NetworkClient
 import Observation
 
 @MainActor
-@Observable public class CurrentAccount {
+@Instantiable
+@Observable public class CurrentAccount: Instantiable {
   private static var accountsCache: [String: Account] = [:]
 
   public private(set) var account: Account?

@@ -1,8 +1,10 @@
+import SafeDI
 import Foundation
 import SwiftUI
 
 @MainActor
-@Observable public class TimelineContentFilter {
+@Instantiable
+@Observable public class TimelineContentFilter: Instantiable {
   public struct Snapshot: Sendable {
     public let showBoosts: Bool
     public let showReplies: Bool

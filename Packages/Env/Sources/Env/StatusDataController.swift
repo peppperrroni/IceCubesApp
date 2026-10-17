@@ -1,3 +1,4 @@
+import SafeDI
 import Foundation
 import Models
 import NetworkClient
@@ -21,7 +22,8 @@ public protocol StatusDataControlling {
 
 @MainActor
 @Observable
-public final class StatusDataControllerProvider {
+@Instantiable
+public final class StatusDataControllerProvider: Instantiable {
   @ObservationIgnored private var cache: NSMutableDictionary = [:]
 
   public init() {}

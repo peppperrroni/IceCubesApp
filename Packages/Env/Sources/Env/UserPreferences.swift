@@ -1,3 +1,4 @@
+import SafeDI
 import Combine
 import Foundation
 import Models
@@ -5,7 +6,8 @@ import NetworkClient
 import SwiftUI
 
 @MainActor
-@Observable public class UserPreferences {
+@Instantiable
+@Observable public class UserPreferences: Instantiable {
   class Storage {
     @AppStorage("preferred_browser") public var preferredBrowser: PreferredBrowser = .inAppSafari
     @AppStorage("show_translate_button_inline") public var showTranslateButton: Bool = true

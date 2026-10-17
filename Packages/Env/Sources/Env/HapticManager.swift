@@ -1,9 +1,11 @@
+import SafeDI
 import CoreHaptics
 import UIKit
 
 @MainActor
 @Observable
-public class HapticManager {
+@Instantiable
+public class HapticManager: Instantiable {
 
   #if os(visionOS)
     public enum FeedbackType: Int {
@@ -29,7 +31,7 @@ public class HapticManager {
     private let notificationGenerator = UINotificationFeedbackGenerator()
   #endif
 
-  private let userPreferences: UserPreferences
+  @Received private let userPreferences: UserPreferences
 
   public init(userPreferences: UserPreferences) {
     self.userPreferences = userPreferences

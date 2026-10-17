@@ -17,6 +17,7 @@ let package = Package(
     )
   ],
   dependencies: [
+    .package(url: "https://github.com/dfed/SafeDI", exact: "2.0.0"),
     .package(name: "Models", path: "../Models"),
     .package(name: "NetworkClient", path: "../NetworkClient"),
     .package(url: "https://github.com/evgenyneu/keychain-swift", from: "24.0.0"),
@@ -26,6 +27,7 @@ let package = Package(
     .target(
       name: "Env",
       dependencies: [
+        .product(name: "SafeDI", package: "SafeDI"),
         .product(name: "Models", package: "Models"),
         .product(name: "NetworkClient", package: "NetworkClient"),
         .product(name: "KeychainSwift", package: "keychain-swift"),

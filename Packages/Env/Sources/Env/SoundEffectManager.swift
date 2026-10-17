@@ -1,3 +1,4 @@
+import SafeDI
 import AVKit
 import AudioToolbox
 import CoreHaptics
@@ -5,7 +6,8 @@ import UIKit
 
 @MainActor
 @Observable
-public class SoundEffectManager {
+@Instantiable
+public class SoundEffectManager: Instantiable {
 
   public enum SoundEffect: String, CaseIterable {
     case pull, refresh, tootSent, tabSelection, bookmark, boost, favorite, share
@@ -13,7 +15,7 @@ public class SoundEffectManager {
 
   @ObservationIgnored private var systemSoundIDs: [SoundEffect: SystemSoundID] = [:]
 
-  private let userPreferences: UserPreferences
+  @Received private let userPreferences: UserPreferences
 
   public init(userPreferences: UserPreferences) {
     self.userPreferences = userPreferences

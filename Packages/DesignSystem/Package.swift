@@ -17,6 +17,7 @@ let package = Package(
     )
   ],
   dependencies: [
+    .package(url: "https://github.com/dfed/SafeDI", exact: "2.0.0"),
     .package(name: "Models", path: "../Models"),
     .package(name: "Env", path: "../Env"),
     .package(url: "https://github.com/kean/Nuke", exact: "13.2.0"),
@@ -27,6 +28,7 @@ let package = Package(
     .target(
       name: "DesignSystem",
       dependencies: [
+        .product(name: "SafeDI", package: "SafeDI"),
         .product(name: "Models", package: "Models"),
         .product(name: "Env", package: "Env"),
         .product(name: "NukeUI", package: "Nuke"),
