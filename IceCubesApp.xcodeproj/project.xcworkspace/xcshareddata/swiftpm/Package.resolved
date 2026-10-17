@@ -1,5 +1,5 @@
 {
-  "originHash" : "a385044d9d2ed200355221b2fa134ff82734976d25fc828f4bf68e8eb32555c0",
+  "originHash" : "f5d4432b7968a640a3d8f0a0ce27ef4d485af45d7112008d1b87886fe2affadf",
   "pins" : [
     {
       "identity" : "bodega",
@@ -53,6 +53,15 @@
       "state" : {
         "revision" : "f0570e943ea4445d258113ba73f50cb2b7e564ac",
         "version" : "1.3.0"
+      }
+    },
+    {
+      "identity" : "needle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/uber/needle",
+      "state" : {
+        "revision" : "69f7a889d2736f2621c6083ac29e0a75d158f249",
+        "version" : "0.25.1"
       }
     },
     {

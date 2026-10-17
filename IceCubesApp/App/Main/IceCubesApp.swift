@@ -1,5 +1,6 @@
 import AVFoundation
 import Account
+import NeedleFoundation
 import AppAccount
 import DesignSystem
 import Env
@@ -22,7 +23,7 @@ struct IceCubesApp: App {
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.openWindow) var openWindow
 
-  let deps = AppDependencies()
+  let deps: AppDependencies
   @State var appAccountsManager: AppAccountsManager
   @State var currentInstance: CurrentInstance
   @State var currentAccount: CurrentAccount
@@ -42,6 +43,11 @@ struct IceCubesApp: App {
   @Namespace var namespace
 
   init() {
+    registerProviderFactories()  // Needle: must precede any Component creation
+    deps = AppDependencies()
+    // Static helpers with no owner (Font, layoutPadding, DeepL key) read these.
+    Theme.current = deps.theme
+    UserPreferences.current = deps.userPreferences
     _appAccountsManager = State(initialValue: deps.appAccountsManager)
     _currentInstance = State(initialValue: deps.currentInstance)
     _currentAccount = State(initialValue: deps.currentAccount)

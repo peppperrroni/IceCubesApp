@@ -2,46 +2,41 @@ import Account
 import AppAccount
 import DesignSystem
 import Env
+import NeedleFoundation
 import NetworkClient
 import StatusKit
 import Timeline
 
-/// Composition root: every app-lifetime service is created exactly once here.
+/// Composition root as a Needle bootstrap component: one scope, one `shared` instance per service.
 /// This file is the source of truth for the benchmark manifest (apps/icecubes/manifest.json).
-@MainActor
-struct AppDependencies {
-  let theme: Theme
-  let userPreferences: UserPreferences
-  let hapticManager: HapticManager
-  let soundEffectManager: SoundEffectManager
-  let appAccountsManager: AppAccountsManager
-  let currentInstance: CurrentInstance
-  let currentAccount: CurrentAccount
-  let pushNotificationsService: PushNotificationsService
-  let streamWatcher: StreamWatcher
-  let quickLook: QuickLook
-  let toastCenter: ToastCenter
-  let statusEmbedCache: StatusEmbedCache
-  let statusDataControllerProvider: StatusDataControllerProvider
-  let timelineContentFilter: TimelineContentFilter
-
-  init() {
-    theme = Theme()
-    userPreferences = UserPreferences()
-    hapticManager = HapticManager(userPreferences: userPreferences)
-    soundEffectManager = SoundEffectManager(userPreferences: userPreferences)
-    appAccountsManager = AppAccountsManager()
-    currentInstance = CurrentInstance()
-    currentAccount = CurrentAccount()
-    pushNotificationsService = PushNotificationsService(userPreferences: userPreferences)
-    streamWatcher = StreamWatcher()
-    quickLook = QuickLook()
-    toastCenter = ToastCenter()
-    statusEmbedCache = StatusEmbedCache()
-    statusDataControllerProvider = StatusDataControllerProvider()
-    timelineContentFilter = TimelineContentFilter()
-    // Static helpers with no owner (Font, layoutPadding, DeepL key) read these.
-    Theme.current = theme
-    UserPreferences.current = userPreferences
+/// NeedleFoundation is Swift-5-mode without actor support, so MainActor types are built inside
+/// `MainActor.assumeIsolated`; the root is created on the main thread by IceCubesApp.
+nonisolated final class AppDependencies: BootstrapComponent {
+  public var theme: Theme { shared { MainActor.assumeIsolated { Theme() } } }
+  public var userPreferences: UserPreferences { shared { MainActor.assumeIsolated { UserPreferences() } } }
+  public var hapticManager: HapticManager {
+    let userPreferences = userPreferences
+    return shared { MainActor.assumeIsolated { HapticManager(userPreferences: userPreferences) } }
+  }
+  public var soundEffectManager: SoundEffectManager {
+    let userPreferences = userPreferences
+    return shared { MainActor.assumeIsolated { SoundEffectManager(userPreferences: userPreferences) } }
+  }
+  public var appAccountsManager: AppAccountsManager { shared { MainActor.assumeIsolated { AppAccountsManager() } } }
+  public var currentInstance: CurrentInstance { shared { MainActor.assumeIsolated { CurrentInstance() } } }
+  public var currentAccount: CurrentAccount { shared { MainActor.assumeIsolated { CurrentAccount() } } }
+  public var pushNotificationsService: PushNotificationsService {
+    let userPreferences = userPreferences
+    return shared { MainActor.assumeIsolated { PushNotificationsService(userPreferences: userPreferences) } }
+  }
+  public var streamWatcher: StreamWatcher { shared { MainActor.assumeIsolated { StreamWatcher() } } }
+  public var quickLook: QuickLook { shared { MainActor.assumeIsolated { QuickLook() } } }
+  public var toastCenter: ToastCenter { shared { MainActor.assumeIsolated { ToastCenter() } } }
+  public var statusEmbedCache: StatusEmbedCache { shared { MainActor.assumeIsolated { StatusEmbedCache() } } }
+  public var statusDataControllerProvider: StatusDataControllerProvider {
+    shared { MainActor.assumeIsolated { StatusDataControllerProvider() } }
+  }
+  public var timelineContentFilter: TimelineContentFilter {
+    shared { MainActor.assumeIsolated { TimelineContentFilter() } }
   }
 }

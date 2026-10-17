@@ -52,6 +52,7 @@
 		9FFF6780299B7D2B00FE700A /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 9FFF677F299B7D2B00FE700A /* DesignSystem */; };
 		9FFF6782299B7D3A00FE700A /* Account in Frameworks */ = {isa = PBXBuildFile; productRef = 9FFF6781299B7D3A00FE700A /* Account */; };
 		DA0B24FB2A6876D50045BDD7 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = DA0B24FA2A6876D50045BDD7 /* SFSafeSymbols */; };
+		D15C0001000000000000B003 /* NeedleFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = D15C0001000000000000B002 /* NeedleFoundation */; };
 		E92817FA298443D600875FD1 /* Models in Frameworks */ = {isa = PBXBuildFile; productRef = E92817F9298443D600875FD1 /* Models */; };
 		E92817FC298443D600875FD1 /* NetworkClient in Frameworks */ = {isa = PBXBuildFile; productRef = E92817FB298443D600875FD1 /* NetworkClient */; };
 		E9DB78982E004E4C004EAC2E /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = E9DB78972E004E4C004EAC2E /* AppIcon.icon */; };
@@ -273,6 +274,7 @@
 				9F2A540E2969A0B0009B2D7C /* StoreKit.framework in Frameworks */,
 				9F55C6902955993C00F94077 /* Explore in Frameworks */,
 				9FAE4ACE29379A5A00772766 /* KeychainSwift in Frameworks */,
+				D15C0001000000000000B003 /* NeedleFoundation in Frameworks */,
 				9F7335EA2966B3F800AFF0BA /* Conversations in Frameworks */,
 				9FE3DB57296FEFCA00628CB0 /* AppAccount in Frameworks */,
 				9F398AA92935FFDB00A889F2 /* Account in Frameworks */,
@@ -447,6 +449,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9FBFE648292A715600C250E9 /* Build configuration list for PBXNativeTarget "IceCubesApp" */;
 			buildPhases = (
+				D15C0001000000000000B004 /* Needle Generate */,
 				9FBFE635292A715500C250E9 /* Sources */,
 				9FBFE636292A715500C250E9 /* Frameworks */,
 				9FBFE637292A715500C250E9 /* Resources */,
@@ -467,6 +470,7 @@
 			);
 			name = IceCubesApp;
 			packageProductDependencies = (
+				D15C0001000000000000B002 /* NeedleFoundation */,
 				9FBFE64D292A72BD00C250E9 /* NetworkClient */,
 				9F29553F292B6C3400E0E81B /* Timeline */,
 				9F398AA82935FFDB00A889F2 /* Account */,
@@ -570,6 +574,7 @@
 				DA0B24F92A6876D40045BDD7 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 				9F9191572C6DDF20001C89E7 /* XCRemoteSwiftPackageReference "wishkit-ios" */,
 				2773E6052DA805F5000E6E38 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				D15C0001000000000000B001 /* XCRemoteSwiftPackageReference "needle" */,
 			);
 			productRefGroup = 9FBFE63A292A715500C250E9 /* Products */;
 			projectDirPath = "";
@@ -623,6 +628,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D15C0001000000000000B004 /* Needle Generate */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Needle Generate";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin\"\nexport SOURCEKIT_LOGGING=0\nneedle generate \"$SRCROOT/IceCubesApp/App/DI/NeedleGenerated.swift\" \"$SRCROOT/IceCubesApp\" --exclude-suffixes Tests\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		9F2A5412296AB631009B2D7C /* Sources */ = {
@@ -965,7 +991,7 @@
 				DEVELOPMENT_TEAM = Z6P74P6T99;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1033,7 +1059,7 @@
 				DEVELOPMENT_TEAM = Z6P74P6T99;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1364,6 +1390,14 @@
 				minimumVersion = 7.0.0;
 			};
 		};
+		D15C0001000000000000B001 /* XCRemoteSwiftPackageReference "needle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/uber/needle";
+			requirement = {
+				kind = exactVersion;
+				version = 0.25.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1524,6 +1558,11 @@
 		E92817FB298443D600875FD1 /* NetworkClient */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkClient;
+		};
+		D15C0001000000000000B002 /* NeedleFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D15C0001000000000000B001 /* XCRemoteSwiftPackageReference "needle" */;
+			productName = NeedleFoundation;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
