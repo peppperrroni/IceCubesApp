@@ -7,7 +7,8 @@ import StatusKit
 import Swinject
 import Timeline
 
-/// Composition root: every app-lifetime service is registered once in a Swinject container.
+/// Composition root: app-lifetime services registered once in a Swinject container.
+/// Session and feature scopes are child containers (see SessionDependencies, FeatureDependencies).
 /// This file is the source of truth for the benchmark manifest (apps/icecubes/manifest.json).
 @MainActor
 struct AppDependencies {
@@ -18,10 +19,7 @@ struct AppDependencies {
   let hapticManager: HapticManager
   let soundEffectManager: SoundEffectManager
   let appAccountsManager: AppAccountsManager
-  let currentInstance: CurrentInstance
-  let currentAccount: CurrentAccount
   let pushNotificationsService: PushNotificationsService
-  let streamWatcher: StreamWatcher
   let quickLook: QuickLook
   let toastCenter: ToastCenter
   let statusEmbedCache: StatusEmbedCache
@@ -38,12 +36,9 @@ struct AppDependencies {
       SoundEffectManager(userPreferences: r.resolve(UserPreferences.self)!)
     }.inObjectScope(.container)
     container.register(AppAccountsManager.self) { _ in AppAccountsManager() }.inObjectScope(.container)
-    container.register(CurrentInstance.self) { _ in CurrentInstance() }.inObjectScope(.container)
-    container.register(CurrentAccount.self) { _ in CurrentAccount() }.inObjectScope(.container)
     container.register(PushNotificationsService.self) { r in
       PushNotificationsService(userPreferences: r.resolve(UserPreferences.self)!)
     }.inObjectScope(.container)
-    container.register(StreamWatcher.self) { _ in StreamWatcher() }.inObjectScope(.container)
     container.register(QuickLook.self) { _ in QuickLook() }.inObjectScope(.container)
     container.register(ToastCenter.self) { _ in ToastCenter() }.inObjectScope(.container)
     container.register(StatusEmbedCache.self) { _ in StatusEmbedCache() }.inObjectScope(.container)
@@ -56,10 +51,7 @@ struct AppDependencies {
     hapticManager = container.resolve(HapticManager.self)!
     soundEffectManager = container.resolve(SoundEffectManager.self)!
     appAccountsManager = container.resolve(AppAccountsManager.self)!
-    currentInstance = container.resolve(CurrentInstance.self)!
-    currentAccount = container.resolve(CurrentAccount.self)!
     pushNotificationsService = container.resolve(PushNotificationsService.self)!
-    streamWatcher = container.resolve(StreamWatcher.self)!
     quickLook = container.resolve(QuickLook.self)!
     toastCenter = container.resolve(ToastCenter.self)!
     statusEmbedCache = container.resolve(StatusEmbedCache.self)!
@@ -68,5 +60,10 @@ struct AppDependencies {
     // Static helpers with no owner (Font, layoutPadding, DeepL key) read these.
     Theme.current = theme
     UserPreferences.current = userPreferences
+  }
+
+  /// Session scope: a child container per current client.
+  func makeSession(client: MastodonClient) -> SessionDependencies {
+    SessionDependencies(app: self, client: client)
   }
 }
