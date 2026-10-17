@@ -30,9 +30,10 @@ nonisolated final class TimelineComponent: Component<TimelineDependency> {
 @MainActor
 final class FeatureDependencies {
   let component: TimelineComponent
-  var timelineScope: TimelineFeatureScope { component.timelineScope }
+  let timelineScope: TimelineFeatureScope  // built eagerly so a feature scope is constructed, as in every other variant
 
   init(component: TimelineComponent) {
     self.component = component
+    timelineScope = component.timelineScope
   }
 }
