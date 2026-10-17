@@ -20,10 +20,11 @@ public protocol StatusDataControlling {
 }
 
 @MainActor
+@Observable
 public final class StatusDataControllerProvider {
-  public static let shared = StatusDataControllerProvider()
+  @ObservationIgnored private var cache: NSMutableDictionary = [:]
 
-  private var cache: NSMutableDictionary = [:]
+  public init() {}
 
   private struct CacheKey: Hashable {
     let statusId: String

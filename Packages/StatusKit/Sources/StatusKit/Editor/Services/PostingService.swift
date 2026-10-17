@@ -5,6 +5,7 @@ import NetworkClient
 extension StatusEditor {
   @MainActor
   struct PostingService {
+    var watcher: StreamWatcher?
     @MainActor
     protocol Client {
       func postStatus(data: StatusData) async throws -> Status
@@ -63,11 +64,11 @@ extension StatusEditor {
       switch input.mode {
       case .new, .replyTo, .quote, .mention, .shareExtension, .quoteLink, .imageURL:
         let status = try await client.postStatus(data: data)
-        StreamWatcher.shared.emmitPostEvent(for: status)
+        watcher?.emmitPostEvent(for: status)
         return status
       case .edit(let status):
         let updated = try await client.editStatus(id: status.id, data: data)
-        StreamWatcher.shared.emmitEditEvent(for: updated)
+        watcher?.emmitEditEvent(for: updated)
         return updated
       }
     }

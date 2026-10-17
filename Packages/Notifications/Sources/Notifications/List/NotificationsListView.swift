@@ -6,6 +6,8 @@ import SwiftUI
 
 @MainActor
 public struct NotificationsListView: View {
+  @Environment(SoundEffectManager.self) private var soundEffectManager
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.scenePhase) private var scenePhase
 
   @Environment(Theme.self) private var theme
@@ -15,7 +17,7 @@ public struct NotificationsListView: View {
   @Environment(CurrentAccount.self) private var account
   @Environment(CurrentInstance.self) private var currentInstance
 
-  @State private var dataSource = NotificationsListDataSource()
+  @State private var dataSource: NotificationsListDataSource
   @State private var viewState: NotificationsListState = .loading
   @State private var selectedType: Models.Notification.NotificationType?
   @State private var policy: Models.NotificationsPolicy?
@@ -27,8 +29,10 @@ public struct NotificationsListView: View {
 
   public init(
     lockedType: Models.Notification.NotificationType? = nil,
-    lockedAccountId: String? = nil
+    lockedAccountId: String? = nil,
+    currentInstance: CurrentInstance
   ) {
+    _dataSource = State(initialValue: NotificationsListDataSource(currentInstance: currentInstance))
     self.lockedType = lockedType
     self.lockedAccountId = lockedAccountId
     self.isLockedType = lockedType != nil
@@ -132,12 +136,12 @@ public struct NotificationsListView: View {
       policy = await dataSource.fetchPolicy(client: client)
     }
     .refreshable {
-      SoundEffectManager.shared.playSound(.pull)
-      HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.3))
+      soundEffectManager.playSound(.pull)
+      hapticManager.fireHaptic(.dataRefresh(intensity: 0.3))
       await fetchNotifications()
       policy = await dataSource.fetchPolicy(client: client)
-      HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.7))
-      SoundEffectManager.shared.playSound(.refresh)
+      hapticManager.fireHaptic(.dataRefresh(intensity: 0.7))
+      soundEffectManager.playSound(.refresh)
     }
     .onChange(of: watcher.latestEvent?.id) {
       if let latestEvent = watcher.latestEvent {

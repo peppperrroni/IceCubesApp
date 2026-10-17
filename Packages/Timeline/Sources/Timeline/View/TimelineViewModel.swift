@@ -63,8 +63,11 @@ import SwiftUI
 
   // Internal source of truth for a timeline.
   @ObservationIgnored
-  private(set) var datasource = TimelineDatasource()
+  private(set) var datasource: TimelineDatasource
   private let statusFetcher: TimelineStatusFetching
+  private let userPreferences: UserPreferences
+  private let statusDataControllerProvider: StatusDataControllerProvider
+  private let watcher: StreamWatcher
 
   @ObservationIgnored
   private let cache = TimelineCache()
@@ -78,7 +81,7 @@ import SwiftUI
   }
 
   private var isFullTimelineFetchEnabled: Bool {
-    guard UserPreferences.shared.fullTimelineFetch else { return false }
+    guard userPreferences.fullTimelineFetch else { return false }
     return true
   }
 
@@ -124,11 +127,23 @@ import SwiftUI
     client?.server ?? "Error"
   }
 
-  let pendingStatusesObserver: TimelineUnreadStatusesObserver = .init()
+  let pendingStatusesObserver: TimelineUnreadStatusesObserver
   var marker: Marker.Content?
 
-  init(statusFetcher: TimelineStatusFetching = TimelineStatusFetcher()) {
+  init(
+    statusFetcher: TimelineStatusFetching = TimelineStatusFetcher(),
+    userPreferences: UserPreferences,
+    statusDataControllerProvider: StatusDataControllerProvider,
+    watcher: StreamWatcher,
+    timelineContentFilter: TimelineContentFilter,
+    hapticManager: HapticManager
+  ) {
     self.statusFetcher = statusFetcher
+    self.userPreferences = userPreferences
+    self.statusDataControllerProvider = statusDataControllerProvider
+    self.watcher = watcher
+    datasource = TimelineDatasource(contentFilter: timelineContentFilter)
+    pendingStatusesObserver = TimelineUnreadStatusesObserver(hapticManager: hapticManager)
     Task {
       await datasource.setFilterContext(timeline.filterContext)
     }
@@ -362,7 +377,7 @@ extension TimelineViewModel: GapLoadingFetcher {
       statusesToInsert = Array(statusesToInsert.prefix(Constants.fullTimelineFetchLimit))
     }
 
-    StatusDataControllerProvider.shared.updateDataControllers(
+    statusDataControllerProvider.updateDataControllers(
       for: statusesToInsert, client: client)
 
     // Pass the original count to determine if we need a gap
@@ -432,7 +447,7 @@ extension TimelineViewModel: GapLoadingFetcher {
       offset: statuses.count)
 
     await datasource.append(contentOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
 
     let lastCount = await autoFetchNextPagesIfFilteredEmpty(
       lastFetchedCount: newStatuses.count,
@@ -477,7 +492,7 @@ extension TimelineViewModel: GapLoadingFetcher {
           offset: 0,
           limit: 50))
 
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
 
       // Get the original gap index before replacing
       let items = await datasource.getItems()
@@ -520,7 +535,7 @@ extension TimelineViewModel: GapLoadingFetcher {
   )
     async
   {
-    StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
 
     if replaceExisting {
       await datasource.set(statuses)
@@ -573,7 +588,7 @@ extension TimelineViewModel: GapLoadingFetcher {
       }
       guard !newStatuses.isEmpty else { break }
       await datasource.append(contentOf: newStatuses)
-      StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
       lastCount = newStatuses.count
       pagesLoaded += 1
     }
@@ -632,7 +647,6 @@ extension TimelineViewModel {
   private func updateStreamWatcher() {
     guard let client, client.isAuth else { return }
 
-    let watcher = StreamWatcher.shared
     var streams: [StreamWatcher.Stream] = []
 
     streams.append(.user)
@@ -679,7 +693,7 @@ extension TimelineViewModel {
     let shouldStream =
       switch timeline {
       case .home:
-        UserPreferences.shared.streamHomeTimeline
+        userPreferences.streamHomeTimeline
       case .federated, .local:
         isStreamingTimeline
       default:
@@ -695,7 +709,7 @@ extension TimelineViewModel {
     pendingStatusesObserver.pendingStatuses.insert(event.status.id, at: 0)
     await datasource.insert(event.status, at: 0)
     await cache()
-    StatusDataControllerProvider.shared.updateDataControllers(for: [event.status], client: client)
+    statusDataControllerProvider.updateDataControllers(for: [event.status], client: client)
     await updateStatusesStateWithAnimation()
   }
 
@@ -711,7 +725,7 @@ extension TimelineViewModel {
   {
     guard let originalIndex = await datasource.indexOf(statusId: event.status.id) else { return }
 
-    StatusDataControllerProvider.shared.updateDataControllers(for: [event.status], client: client)
+    statusDataControllerProvider.updateDataControllers(for: [event.status], client: client)
     await datasource.replace(event.status, at: originalIndex)
     await cache()
     await updateStatusesStateWithAnimation()

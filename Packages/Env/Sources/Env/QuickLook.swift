@@ -11,9 +11,7 @@ import SwiftUI
   @ObservationIgnored
   public var namespace: Namespace.ID?
 
-  public static let shared = QuickLook()
-
-  private init() {}
+  public init() {}
 
   public func prepareFor(
     selectedMediaAttachment: MediaAttachment, mediaAttachments: [MediaAttachment]

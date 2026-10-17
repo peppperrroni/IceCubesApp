@@ -6,6 +6,7 @@ import SwiftUI
 
 @MainActor
 public struct EmojiTextApp: View {
+  @Environment(UserPreferences.self) private var userPreferences
   private let markdown: HTMLString
   private let emojis: [any CustomEmoji]
   private let language: String?
@@ -26,7 +27,7 @@ public struct EmojiTextApp: View {
   public var body: some View {
     if let append {
       EmojiText(markdown: markdown.asMarkdown, emojis: emojis)
-        .animated(UserPreferences.shared.animateEmojis)
+        .animated(userPreferences.animateEmojis)
         .append(text: append)
         .lineLimit(lineLimit)
     } else if emojis.isEmpty {
@@ -35,7 +36,7 @@ public struct EmojiTextApp: View {
         .environment(\.layoutDirection, isRTL() ? .rightToLeft : .leftToRight)
     } else {
       EmojiText(markdown: markdown.asMarkdown, emojis: emojis)
-        .animated(UserPreferences.shared.animateEmojis)
+        .animated(userPreferences.animateEmojis)
         .lineLimit(lineLimit)
         .environment(\.layoutDirection, isRTL() ? .rightToLeft : .leftToRight)
     }

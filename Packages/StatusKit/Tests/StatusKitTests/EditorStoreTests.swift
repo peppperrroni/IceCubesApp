@@ -7,6 +7,9 @@ import XCTest
 
 @MainActor
 final class EditorStoreTests: XCTestCase {
+  let preferences = UserPreferences()
+  let watcher = StreamWatcher()
+
   func testConfigureIfNeededSetsInitialTextAndVisibility() {
     let store = StatusEditor.EditorStore(mode: .new(text: "Hello", visibility: .priv))
     let client = MockEditorClient()
@@ -14,9 +17,12 @@ final class EditorStoreTests: XCTestCase {
     store.configureIfNeeded(
       client: client,
       currentAccount: nil,
-      theme: Theme.shared,
-      preferences: UserPreferences.shared,
-      currentInstance: CurrentInstance.shared
+      theme: Theme(),
+      preferences: preferences,
+      currentInstance: CurrentInstance(),
+      toastCenter: ToastCenter(),
+      hapticManager: HapticManager(userPreferences: preferences),
+      watcher: watcher
     )
 
     XCTAssertEqual(store.statusText.string, "Hello")
@@ -30,9 +36,12 @@ final class EditorStoreTests: XCTestCase {
     store.configureIfNeeded(
       client: client,
       currentAccount: nil,
-      theme: Theme.shared,
-      preferences: UserPreferences.shared,
-      currentInstance: CurrentInstance.shared
+      theme: Theme(),
+      preferences: preferences,
+      currentInstance: CurrentInstance(),
+      toastCenter: ToastCenter(),
+      hapticManager: HapticManager(userPreferences: preferences),
+      watcher: watcher
     )
 
     store.textState.statusText = NSMutableAttributedString(string: "Changed")
@@ -40,9 +49,12 @@ final class EditorStoreTests: XCTestCase {
     store.configureIfNeeded(
       client: client,
       currentAccount: nil,
-      theme: Theme.shared,
-      preferences: UserPreferences.shared,
-      currentInstance: CurrentInstance.shared
+      theme: Theme(),
+      preferences: preferences,
+      currentInstance: CurrentInstance(),
+      toastCenter: ToastCenter(),
+      hapticManager: HapticManager(userPreferences: preferences),
+      watcher: watcher
     )
 
     XCTAssertEqual(store.statusText.string, "Changed")
@@ -58,12 +70,8 @@ final class EditorStoreTests: XCTestCase {
       XCTAssertEqual(timer?.isValid, true)
       return .placeholder()
     }
-    let events = StreamWatcher.shared.events
-    let latestEvent = StreamWatcher.shared.latestEvent
     defer {
       timer?.invalidate()
-      StreamWatcher.shared.events = events
-      StreamWatcher.shared.latestEvent = latestEvent
     }
 
     let status = await store.postStatus()
@@ -99,9 +107,12 @@ final class EditorStoreTests: XCTestCase {
     store.configureIfNeeded(
       client: client,
       currentAccount: nil,
-      theme: Theme.shared,
-      preferences: UserPreferences.shared,
-      currentInstance: CurrentInstance.shared
+      theme: Theme(),
+      preferences: preferences,
+      currentInstance: CurrentInstance(),
+      toastCenter: ToastCenter(),
+      hapticManager: HapticManager(userPreferences: preferences),
+      watcher: watcher
     )
 
     let followUp = store.makeFollowUpStore()

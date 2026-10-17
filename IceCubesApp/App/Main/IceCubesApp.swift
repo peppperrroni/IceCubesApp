@@ -17,21 +17,22 @@ import Timeline
 
 @main
 struct IceCubesApp: App {
-  @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  @UIApplicationDelegateAdaptor var appDelegate: AppDelegate
 
   @Environment(\.scenePhase) var scenePhase
   @Environment(\.openWindow) var openWindow
 
-  @State var appAccountsManager = AppAccountsManager.shared
-  @State var currentInstance = CurrentInstance.shared
-  @State var currentAccount = CurrentAccount.shared
-  @State var userPreferences = UserPreferences.shared
-  @State var pushNotificationsService = PushNotificationsService.shared
+  let deps = AppDependencies()
+  @State var appAccountsManager: AppAccountsManager
+  @State var currentInstance: CurrentInstance
+  @State var currentAccount: CurrentAccount
+  @State var userPreferences: UserPreferences
+  @State var pushNotificationsService: PushNotificationsService
   @State var appIntentService = AppIntentService.shared
-  @State var watcher = StreamWatcher.shared
-  @State var quickLook = QuickLook.shared
-  @State var theme = Theme.shared
-  @State var toastCenter = ToastCenter.shared
+  @State var watcher: StreamWatcher
+  @State var quickLook: QuickLook
+  @State var theme: DesignSystem.Theme
+  @State var toastCenter: ToastCenter
 
   @State var selectedTab: AppTab = .timeline
   @State var appRouterPath = RouterPath()
@@ -41,6 +42,16 @@ struct IceCubesApp: App {
   @Namespace var namespace
 
   init() {
+    _appAccountsManager = State(initialValue: deps.appAccountsManager)
+    _currentInstance = State(initialValue: deps.currentInstance)
+    _currentAccount = State(initialValue: deps.currentAccount)
+    _userPreferences = State(initialValue: deps.userPreferences)
+    _pushNotificationsService = State(initialValue: deps.pushNotificationsService)
+    _watcher = State(initialValue: deps.streamWatcher)
+    _quickLook = State(initialValue: deps.quickLook)
+    _theme = State(initialValue: deps.theme)
+    _toastCenter = State(initialValue: deps.toastCenter)
+    deps.pushNotificationsService.setAccounts(accounts: deps.appAccountsManager.pushAccounts)
     #if DEBUG
       UserDefaults.standard.register(defaults: [
         "com.apple.SwiftUI.GraphReuseLogging": true, // Enable "GraphReuseLogging" by default. The log can be found via - subsystem: "com.apple.SwiftUI" category: "GraphReuse"
@@ -82,18 +93,21 @@ struct IceCubesApp: App {
   }
 
   func refreshPushSubs() {
-    PushNotificationsService.shared.requestPushNotifications()
+    pushNotificationsService.requestPushNotifications()
   }
 }
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
+  // Installed by IceCubesApp on first appearance; the launch-time registration moved to IceCubesApp.init.
+  var pushNotificationsService: PushNotificationsService?
+  var appAccountsManager: AppAccountsManager?
+
   func application(
     _: UIApplication,
     didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     try? AVAudioSession.sharedInstance().setCategory(.ambient, options: .mixWithOthers)
     try? AVAudioSession.sharedInstance().setActive(true)
-    PushNotificationsService.shared.setAccounts(accounts: AppAccountsManager.shared.pushAccounts)
     Telemetry.setup()
     Telemetry.signal("app.launched")
     #if !targetEnvironment(macCatalyst)
@@ -106,10 +120,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    PushNotificationsService.shared.pushToken = deviceToken
+    guard let pushNotificationsService, let appAccountsManager else { return }
+    pushNotificationsService.pushToken = deviceToken
     Task {
-      PushNotificationsService.shared.setAccounts(accounts: AppAccountsManager.shared.pushAccounts)
-      await PushNotificationsService.shared.updateSubscriptions(forceCreate: false)
+      pushNotificationsService.setAccounts(accounts: appAccountsManager.pushAccounts)
+      await pushNotificationsService.updateSubscriptions(forceCreate: false)
     }
   }
 

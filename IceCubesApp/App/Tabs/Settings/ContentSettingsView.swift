@@ -10,13 +10,13 @@ import UserNotifications
 
 @MainActor
 struct ContentSettingsView: View {
+  @Environment(TimelineContentFilter.self) private var contentFilter
   @Environment(UserPreferences.self) private var userPreferences
   @Environment(Theme.self) private var theme
 
-  @State private var contentFilter = TimelineContentFilter.shared
-
   var body: some View {
     @Bindable var userPreferences = userPreferences
+    @Bindable var contentFilter = contentFilter
     Form {
       Section("settings.content.media") {
         Toggle(isOn: $userPreferences.autoPlayVideo) {

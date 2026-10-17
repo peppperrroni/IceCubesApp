@@ -1,3 +1,4 @@
+import Env
 import Account
 import DesignSystem
 import EmojiText
@@ -13,8 +14,8 @@ public struct ListEditView: View {
 
   @State private var viewModel: ListEditViewModel
 
-  public init(list: Models.List) {
-    _viewModel = .init(initialValue: .init(list: list))
+  public init(list: Models.List, currentAccount: CurrentAccount) {
+    _viewModel = .init(initialValue: .init(list: list, currentAccount: currentAccount))
   }
 
   public var body: some View {

@@ -14,7 +14,11 @@ public final class NotificationsListDataSource {
   private var lastNotificationGroup: Models.NotificationGroup?
   private var latestNotificationIdForMarker: String?
 
-  public init() {}
+  private let currentInstance: CurrentInstance
+
+  public init(currentInstance: CurrentInstance) {
+    self.currentInstance = currentInstance
+  }
 
   // MARK: - Public Methods
 
@@ -35,7 +39,7 @@ public final class NotificationsListDataSource {
     selectedType: Models.Notification.NotificationType?,
     lockedAccountId: String?
   ) async throws -> FetchResult {
-    let useV2API = CurrentInstance.shared.isGroupedNotificationsSupported && lockedAccountId == nil
+    let useV2API = currentInstance.isGroupedNotificationsSupported && lockedAccountId == nil
 
     if consolidatedNotifications.isEmpty {
       // Initial load
@@ -82,7 +86,7 @@ public final class NotificationsListDataSource {
     selectedType: Models.Notification.NotificationType?,
     lockedAccountId: String?
   ) async throws -> FetchResult {
-    let useV2API = CurrentInstance.shared.isGroupedNotificationsSupported && lockedAccountId == nil
+    let useV2API = currentInstance.isGroupedNotificationsSupported && lockedAccountId == nil
 
     if useV2API {
       try await fetchNextPageV2(client: client, selectedType: selectedType)
@@ -296,7 +300,7 @@ public final class NotificationsListDataSource {
     else { return nil }
 
     let useV2API =
-      CurrentInstance.shared.isGroupedNotificationsSupported
+      currentInstance.isGroupedNotificationsSupported
       && event.notification.groupKey != nil
 
     if useV2API {

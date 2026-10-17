@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 extension CGFloat {
   public static var layoutPadding: CGFloat {
-    Theme.shared.compactLayoutPadding ? 20 : 8
+    Theme.current.compactLayoutPadding ? 20 : 8
   }
 
   public static let dividerPadding: CGFloat = 2

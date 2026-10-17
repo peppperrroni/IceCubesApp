@@ -23,7 +23,7 @@ extension Font {
   #endif
 
   private static func customFont(size: CGFloat, relativeTo textStyle: TextStyle) -> Font {
-    if let chosenFont = Theme.shared.chosenFont {
+    if let chosenFont = Theme.current.chosenFont {
       if chosenFont.fontName == ".AppleSystemUIFontRounded-Regular" {
         return .system(size: size, design: .rounded)
       } else {
@@ -35,14 +35,14 @@ extension Font {
   }
 
   private static func customUIFont(size: CGFloat) -> UIFont {
-    if let chosenFont = Theme.shared.chosenFont {
+    if let chosenFont = Theme.current.chosenFont {
       return chosenFont.withSize(size)
     }
     return .systemFont(ofSize: size)
   }
 
   private static func userScaledFontSize(baseSize: CGFloat) -> CGFloat {
-    UIFontMetrics.default.scaledValue(for: baseSize * Theme.shared.fontSizeScale)
+    UIFontMetrics.default.scaledValue(for: baseSize * Theme.current.fontSizeScale)
   }
 
   public static var scaledTitle: Font {

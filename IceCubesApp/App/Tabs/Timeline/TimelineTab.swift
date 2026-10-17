@@ -10,6 +10,11 @@ import Timeline
 
 @MainActor
 struct TimelineTab: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(StreamWatcher.self) private var watcher
+  @Environment(TimelineContentFilter.self) private var timelineContentFilter
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.modelContext) private var context
 
   @Environment(AppAccountsManager.self) private var appAccount
@@ -47,7 +52,9 @@ struct TimelineTab: View {
         timeline: $timeline,
         pinnedFilters: $pinnedFilters,
         selectedTagGroup: $selectedTagGroup,
-        canFilterTimeline: canFilterTimeline
+        canFilterTimeline: canFilterTimeline,
+        userPreferences: preferences, statusDataControllerProvider: statusDataControllerProvider,
+        watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager
       )
       .withAppRouter()
       .withSheetDestinations(
@@ -61,6 +68,7 @@ struct TimelineTab: View {
     }
     .onAppear {
       routerPath.client = client
+      routerPath.statusEmbedCache = statusEmbedCache
       if !didAppear, canFilterTimeline {
         didAppear = true
         if client.isAuth {

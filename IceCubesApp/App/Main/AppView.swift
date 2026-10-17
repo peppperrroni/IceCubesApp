@@ -15,6 +15,9 @@ import Timeline
 
 @MainActor
 struct AppView: View {
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(SoundEffectManager.self) private var soundEffectManager
   @Environment(\.modelContext) private var context
   @Environment(\.openWindow) var openWindow
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -124,7 +127,7 @@ struct AppView: View {
                 .tabPlacement(tab.tabPlacement)
               }
             } else {
-              ForEach(section.tabs) { tab in
+              ForEach(section.tabs(currentAccount: currentAccount)) { tab in
                 Tab(value: tab, role: tab == .explore ? .search : .none) {
                   makeTabContent(for: tab)
                 } label: {
@@ -152,7 +155,8 @@ struct AppView: View {
     tab.makeContentView(
       homeTimeline: $timeline,
       selectedTab: $selectedTab,
-      pinnedFilters: $pinnedFilters
+      pinnedFilters: $pinnedFilters,
+      statusDataControllerProvider: statusDataControllerProvider
     )
     .overlay(alignment: .top) {
       ToastOverlayView()
@@ -171,8 +175,8 @@ struct AppView: View {
       return
     }
 
-    HapticManager.shared.fireHaptic(.tabSelection)
-    SoundEffectManager.shared.playSound(.tabSelection)
+    hapticManager.fireHaptic(.tabSelection)
+    soundEffectManager.playSound(.tabSelection)
 
     if selectedTab == newTab {
       selectedTabScrollToTop = newTab.id

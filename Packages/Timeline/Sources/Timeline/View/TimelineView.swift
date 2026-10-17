@@ -9,6 +9,8 @@ import SwiftUI
 
 @MainActor
 public struct TimelineView: View {
+  @Environment(SoundEffectManager.self) private var soundEffectManager
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.scenePhase) private var scenePhase
 
   @Environment(Theme.self) private var theme
@@ -23,8 +25,8 @@ public struct TimelineView: View {
   @Binding var pinnedFilters: [TimelineFilter]
   @Binding var selectedTagGroup: TagGroup?
 
-  @State private var viewModel = TimelineViewModel()
-  @State private var contentFilter = TimelineContentFilter.shared
+  @State private var viewModel: TimelineViewModel
+  @Environment(TimelineContentFilter.self) private var contentFilter
   @State private var scrollToIdAnimated: String?
   @State private var wasBackgrounded = false
 
@@ -39,8 +41,17 @@ public struct TimelineView: View {
     timeline: Binding<TimelineFilter>,
     pinnedFilters: Binding<[TimelineFilter]>,
     selectedTagGroup: Binding<TagGroup?>,
-    canFilterTimeline: Bool
+    canFilterTimeline: Bool,
+    userPreferences: UserPreferences,
+    statusDataControllerProvider: StatusDataControllerProvider,
+    watcher: StreamWatcher,
+    timelineContentFilter: TimelineContentFilter,
+    hapticManager: HapticManager
   ) {
+    _viewModel = State(
+      initialValue: TimelineViewModel(
+        userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+        watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager))
     _timeline = timeline
     _pinnedFilters = pinnedFilters
     _selectedTagGroup = selectedTagGroup
@@ -136,11 +147,11 @@ public struct TimelineView: View {
       viewModel.saveMarker()
     }
     .refreshable {
-      SoundEffectManager.shared.playSound(.pull)
-      HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.3))
+      soundEffectManager.playSound(.pull)
+      hapticManager.fireHaptic(.dataRefresh(intensity: 0.3))
       await viewModel.pullToRefresh()
-      HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.7))
-      SoundEffectManager.shared.playSound(.refresh)
+      hapticManager.fireHaptic(.dataRefresh(intensity: 0.7))
+      soundEffectManager.playSound(.refresh)
     }
     .onChange(of: watcher.latestEvent?.id) {
       Task {

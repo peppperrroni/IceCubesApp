@@ -7,6 +7,10 @@ import StatusKit
 import SwiftUI
 
 struct SearchResultsView: View {
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
   @Environment(Theme.self) private var theme
   @Environment(MastodonClient.self) private var client
   @Environment(RouterPath.self) private var routerPath
@@ -82,7 +86,8 @@ struct SearchResultsView: View {
                 status: status,
                 client: client,
                 routerPath: routerPath,
-                filterContext: .pub)
+                filterContext: .pub,
+                  theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
             )
             #if !os(visionOS)
               .listRowBackground(theme.primaryBackgroundColor)

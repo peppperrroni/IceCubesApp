@@ -5,6 +5,7 @@ import SwiftUI
 
 @MainActor
 struct StatusRowSwipeView: View {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.openWindow) private var openWindow
   @Environment(Theme.self) private var theme
   @Environment(UserPreferences.self) private var preferences
@@ -109,7 +110,7 @@ struct StatusRowSwipeView: View {
     -> some View
   {
     Button {
-      HapticManager.shared.fireHaptic(.notification(.success))
+      hapticManager.fireHaptic(.notification(.success))
       #if targetEnvironment(macCatalyst) || os(visionOS)
         switch destination {
         case .replyToStatusEditor(let status):
@@ -133,7 +134,7 @@ struct StatusRowSwipeView: View {
   ) -> some View {
     Button {
       Task {
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager.fireHaptic(.notification(.success))
         await task()
       }
     } label: {

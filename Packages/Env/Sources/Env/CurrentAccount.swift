@@ -18,8 +18,6 @@ import Observation
 
   private var client: MastodonClient?
 
-  public static let shared = CurrentAccount()
-
   public var sortedLists: [List] {
     lists.sorted { $0.title.lowercased() < $1.title.lowercased() }
   }
@@ -28,7 +26,7 @@ import Observation
     tags.sorted { $0.name.lowercased() < $1.name.lowercased() }
   }
 
-  private init() {}
+  public init() {}
 
   public func setClient(client: MastodonClient) {
     self.client = client

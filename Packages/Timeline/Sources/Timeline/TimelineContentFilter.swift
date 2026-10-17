@@ -37,7 +37,6 @@ import SwiftUI
     @AppStorage("timeline_hide_posts_from_bots") var hidePostsFromBots: Bool = false
   }
 
-  public static let shared = TimelineContentFilter()
   private let storage = Storage()
 
   public var showBoosts: Bool {
@@ -76,7 +75,7 @@ import SwiftUI
     }
   }
     
-  private init() {
+  public init() {
     showBoosts = storage.showBoosts
     showReplies = storage.showReplies
     showThreads = storage.showThreads

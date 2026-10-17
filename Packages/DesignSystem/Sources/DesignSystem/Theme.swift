@@ -315,7 +315,8 @@ public final class Theme {
 
   public var selectedSet: ColorSetName = .iceCubeDark
 
-  public static let shared = Theme()
+  /// shortcut: static helpers with no owner (Font, layoutPadding, tint colors) read this; the composition root installs it. Upgrade when those helpers get an owner.
+  public static var current: Theme = Theme()
 
   public func restoreDefault() {
     applySet(set: themeStorage.selectedScheme == .dark ? .iceCubeDark : .iceCubeLight)
@@ -333,7 +334,7 @@ public final class Theme {
     statusActionSecondary = .share
   }
 
-  private init() {
+  public init() {
     isThemePreviouslySet = themeStorage.isThemePreviouslySet
     selectedScheme = themeStorage.selectedScheme
     tintColor = themeStorage.tintColor
