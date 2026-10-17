@@ -10,7 +10,10 @@ import Observation
 @Observable public class CurrentInstance: Instantiable {
   public private(set) var instance: Instance?
 
-  private var client: MastodonClient?
+  /// SafeDI needs the dependency as an immutable decorated property; `activeClient` keeps the
+  /// pre-existing mutable behaviour of `setClient` (used by the editor account picker).
+  @Received private let client: MastodonClient
+  private var activeClient: MastodonClient?
 
   private var version: Float {
     if let stringVersion = instance?.version {
@@ -60,14 +63,17 @@ import Observation
     instance?.apiVersions?.mastodon ?? 0 >= 7
   }
 
-  public init() {}
+  public init(client: MastodonClient) {
+    self.client = client
+    setClient(client: client)
+  }
 
   public func setClient(client: MastodonClient) {
-    self.client = client
+    activeClient = client
   }
 
   public func fetchCurrentInstance() async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     instance = try? await client.get(endpoint: Instances.instance, forceVersion: .v2)
   }
 }

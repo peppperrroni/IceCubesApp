@@ -14,10 +14,8 @@ class ShareViewController: UIViewController {
 
     let appAccountsManager = AppAccountsManager()
     let client = appAccountsManager.currentClient
-    let account = CurrentAccount()
-    let instance = CurrentInstance()
-    account.setClient(client: client)
-    instance.setClient(client: client)
+    let account = CurrentAccount(client: client)
+    let instance = CurrentInstance(client: client)
     Task {
       await instance.fetchCurrentInstance()
     }

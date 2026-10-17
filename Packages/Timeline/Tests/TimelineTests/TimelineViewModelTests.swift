@@ -15,7 +15,7 @@ struct Tests {
   func makeViewModel(statusFetcher: TimelineStatusFetching = TimelineStatusFetcher()) -> TimelineViewModel {
     TimelineViewModel(
       statusFetcher: statusFetcher, userPreferences: preferences,
-      statusDataControllerProvider: StatusDataControllerProvider(), watcher: StreamWatcher(),
+      statusDataControllerProvider: StatusDataControllerProvider(), watcher: StreamWatcher(client: MastodonClient(server: "")),
       timelineContentFilter: contentFilter, hapticManager: HapticManager(userPreferences: preferences))
   }
 

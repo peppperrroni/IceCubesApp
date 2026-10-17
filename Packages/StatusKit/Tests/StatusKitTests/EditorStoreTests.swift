@@ -8,7 +8,7 @@ import XCTest
 @MainActor
 final class EditorStoreTests: XCTestCase {
   let preferences = UserPreferences()
-  let watcher = StreamWatcher()
+  let watcher = StreamWatcher(client: MastodonClient(server: ""))
 
   func testConfigureIfNeededSetsInitialTextAndVisibility() {
     let store = StatusEditor.EditorStore(mode: .new(text: "Hello", visibility: .priv))
@@ -19,7 +19,7 @@ final class EditorStoreTests: XCTestCase {
       currentAccount: nil,
       theme: Theme(),
       preferences: preferences,
-      currentInstance: CurrentInstance(),
+      currentInstance: CurrentInstance(client: MastodonClient(server: "")),
       toastCenter: ToastCenter(),
       hapticManager: HapticManager(userPreferences: preferences),
       watcher: watcher
@@ -38,7 +38,7 @@ final class EditorStoreTests: XCTestCase {
       currentAccount: nil,
       theme: Theme(),
       preferences: preferences,
-      currentInstance: CurrentInstance(),
+      currentInstance: CurrentInstance(client: MastodonClient(server: "")),
       toastCenter: ToastCenter(),
       hapticManager: HapticManager(userPreferences: preferences),
       watcher: watcher
@@ -51,7 +51,7 @@ final class EditorStoreTests: XCTestCase {
       currentAccount: nil,
       theme: Theme(),
       preferences: preferences,
-      currentInstance: CurrentInstance(),
+      currentInstance: CurrentInstance(client: MastodonClient(server: "")),
       toastCenter: ToastCenter(),
       hapticManager: HapticManager(userPreferences: preferences),
       watcher: watcher
@@ -109,7 +109,7 @@ final class EditorStoreTests: XCTestCase {
       currentAccount: nil,
       theme: Theme(),
       preferences: preferences,
-      currentInstance: CurrentInstance(),
+      currentInstance: CurrentInstance(client: MastodonClient(server: "")),
       toastCenter: ToastCenter(),
       hapticManager: HapticManager(userPreferences: preferences),
       watcher: watcher

@@ -418,9 +418,9 @@ public struct StatusRowView: View {
 #Preview {
   let theme = Theme()
   let userPreferences = UserPreferences()
-  let currentAccount = CurrentAccount()
+  let currentAccount = CurrentAccount(client: MastodonClient(server: ""))
   let statusEmbedCache = StatusEmbedCache()
-  let watcher = StreamWatcher()
+  let watcher = StreamWatcher(client: MastodonClient(server: ""))
   List {
     ForEach(0..<3) { _ in
       StatusRowView(

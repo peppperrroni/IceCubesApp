@@ -10,7 +10,8 @@ import Timeline
 // The Xcode plugin scans only the app target; the services live in local packages.
 #SafeDIConfiguration(additionalDirectoriesToInclude: ["Packages"])
 
-/// Composition root: SafeDI instantiates every service once and generates `init()`.
+/// Composition root: SafeDI instantiates every app-scope service once and generates `init()`.
+/// Session scopes are created through an Instantiator that forwards the client.
 /// This file is the source of truth for the benchmark manifest (apps/icecubes/manifest.json).
 @Instantiable(isRoot: true)
 @MainActor
@@ -20,15 +21,13 @@ public final class AppDependencies: Instantiable {
   @Instantiated public let hapticManager: HapticManager
   @Instantiated public let soundEffectManager: SoundEffectManager
   @Instantiated public let appAccountsManager: AppAccountsManager
-  @Instantiated public let currentInstance: CurrentInstance
-  @Instantiated public let currentAccount: CurrentAccount
   @Instantiated public let pushNotificationsService: PushNotificationsService
-  @Instantiated public let streamWatcher: StreamWatcher
   @Instantiated public let quickLook: QuickLook
   @Instantiated public let toastCenter: ToastCenter
   @Instantiated public let statusEmbedCache: StatusEmbedCache
   @Instantiated public let statusDataControllerProvider: StatusDataControllerProvider
   @Instantiated public let timelineContentFilter: TimelineContentFilter
+  @Instantiated private let sessionInstantiator: Instantiator<SessionDependencies>
 
   public init(
     theme: Theme,
@@ -36,29 +35,31 @@ public final class AppDependencies: Instantiable {
     hapticManager: HapticManager,
     soundEffectManager: SoundEffectManager,
     appAccountsManager: AppAccountsManager,
-    currentInstance: CurrentInstance,
-    currentAccount: CurrentAccount,
     pushNotificationsService: PushNotificationsService,
-    streamWatcher: StreamWatcher,
     quickLook: QuickLook,
     toastCenter: ToastCenter,
     statusEmbedCache: StatusEmbedCache,
     statusDataControllerProvider: StatusDataControllerProvider,
-    timelineContentFilter: TimelineContentFilter
+    timelineContentFilter: TimelineContentFilter,
+    sessionInstantiator: Instantiator<SessionDependencies>
   ) {
     self.theme = theme
     self.userPreferences = userPreferences
     self.hapticManager = hapticManager
     self.soundEffectManager = soundEffectManager
     self.appAccountsManager = appAccountsManager
-    self.currentInstance = currentInstance
-    self.currentAccount = currentAccount
     self.pushNotificationsService = pushNotificationsService
-    self.streamWatcher = streamWatcher
     self.quickLook = quickLook
     self.toastCenter = toastCenter
     self.statusEmbedCache = statusEmbedCache
     self.statusDataControllerProvider = statusDataControllerProvider
     self.timelineContentFilter = timelineContentFilter
+    self.sessionInstantiator = sessionInstantiator
+  }
+
+  /// Session scope: forwards the client into a SafeDI sub-tree.
+  func makeSession(client: MastodonClient) -> SessionDependencies {
+    userPreferences.setClient(client: client)  // app-scope object, per-server preferences
+    return sessionInstantiator.instantiate(client)
   }
 }

@@ -9,7 +9,10 @@ import Observation
 @MainActor
 @Instantiable
 @Observable public class StreamWatcher: Instantiable {
-  private var client: MastodonClient?
+  /// SafeDI needs the dependency as an immutable decorated property; `activeClient` keeps the
+  /// pre-existing mutable behaviour of `setClient` (used by the editor account picker).
+  @Received private let client: MastodonClient
+  private var activeClient: MastodonClient?
   private var task: URLSessionWebSocketTask?
   private var watchedStreams: [Stream] = []
   private var instanceStreamingURL: URL?
@@ -31,21 +34,23 @@ import Observation
 
   private let logger = Logger(subsystem: "com.icecubesapp", category: "stream")
 
-  public init() {
+  public init(client: MastodonClient) {
+    self.client = client
+    setClient(client: client, instanceStreamingURL: nil)
   }
 
   public func setClient(client: MastodonClient, instanceStreamingURL: URL?) {
-    if self.client != nil {
+    if activeClient != nil {
       stopWatching()
     }
-    self.client = client
+    activeClient = client
     self.instanceStreamingURL = instanceStreamingURL
     connect()
   }
 
   private func connect() {
     guard
-      let task = try? client?.makeWebSocketTask(
+      let task = try? activeClient?.makeWebSocketTask(
         endpoint: Streaming.streaming,
         instanceStreamingURL: instanceStreamingURL
       )
@@ -58,7 +63,7 @@ import Observation
   }
 
   public func watch(streams: [Stream]) {
-    if client?.isAuth == false {
+    if activeClient?.isAuth == false {
       return
     }
     if task == nil {

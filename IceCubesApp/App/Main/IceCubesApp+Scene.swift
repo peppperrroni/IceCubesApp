@@ -17,21 +17,8 @@ extension IceCubesApp {
           refreshPushSubs()
         }
         .withAppDependencyGraph(
-          appAccountsManager: appAccountsManager,
-          currentAccount: currentAccount,
-          currentInstance: currentInstance,
-          userPreferences: userPreferences,
-          theme: theme,
-          watcher: watcher,
-          pushNotificationsService: pushNotificationsService,
+          deps: deps,
           appIntentService: appIntentService,
-          quickLook: quickLook,
-          toastCenter: toastCenter,
-          hapticManager: deps.hapticManager,
-          soundEffectManager: deps.soundEffectManager,
-          statusEmbedCache: deps.statusEmbedCache,
-          statusDataControllerProvider: deps.statusDataControllerProvider,
-          timelineContentFilter: deps.timelineContentFilter,
           namespace: namespace,
           isSupporter: isSupporter)
         .sheet(item: $quickLook.selectedMediaAttachment) { selectedMediaAttachment in

@@ -18,7 +18,10 @@ import Observation
   public private(set) var updatingFollowRequestAccountIds = Set<String>()
   public private(set) var isLoadingAccount: Bool = false
 
-  private var client: MastodonClient?
+  /// SafeDI needs the dependency as an immutable decorated property; `activeClient` keeps the
+  /// pre-existing mutable behaviour of `setClient` (used by the editor account picker).
+  @Received private let client: MastodonClient
+  private var activeClient: MastodonClient?
 
   public var sortedLists: [List] {
     lists.sorted { $0.title.lowercased() < $1.title.lowercased() }
@@ -28,10 +31,13 @@ import Observation
     tags.sorted { $0.name.lowercased() < $1.name.lowercased() }
   }
 
-  public init() {}
+  public init(client: MastodonClient) {
+    self.client = client
+    setClient(client: client)
+  }
 
   public func setClient(client: MastodonClient) {
-    self.client = client
+    activeClient = client
     guard client.isAuth else { return }
     Task(priority: .userInitiated) {
       await fetchUserData()
@@ -49,7 +55,7 @@ import Observation
   }
 
   public func fetchConnections() async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     do {
       let connections: [String] = try await client.get(endpoint: Instances.peers)
       client.addConnections(connections)
@@ -57,7 +63,7 @@ import Observation
   }
 
   public func fetchCurrentAccount() async {
-    guard let client, client.isAuth else {
+    guard let client = activeClient, client.isAuth else {
       account = nil
       return
     }
@@ -71,7 +77,7 @@ import Observation
   }
 
   public func fetchLists() async {
-    guard let client, client.isAuth else { return }
+    guard let client = activeClient, client.isAuth else { return }
     do {
       lists = try await client.get(endpoint: Lists.lists)
     } catch {
@@ -80,7 +86,7 @@ import Observation
   }
 
   public func fetchFollowedTags() async {
-    guard let client, client.isAuth else { return }
+    guard let client = activeClient, client.isAuth else { return }
     do {
       tags = try await client.get(endpoint: Accounts.followedTags)
     } catch {
@@ -89,7 +95,7 @@ import Observation
   }
 
   public func deleteList(_ list: Models.List) async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     lists.removeAll(where: { $0.id == list.id })
     let response = try? await client.delete(endpoint: Lists.list(id: list.id))
     if response?.statusCode != 200 {
@@ -98,7 +104,7 @@ import Observation
   }
 
   public func followTag(id: String) async -> Tag? {
-    guard let client else { return nil }
+    guard let client = activeClient else { return nil }
     do {
       let tag: Tag = try await client.post(endpoint: Tags.follow(id: id))
       tags.append(tag)
@@ -109,7 +115,7 @@ import Observation
   }
 
   public func unfollowTag(id: String) async -> Tag? {
-    guard let client else { return nil }
+    guard let client = activeClient else { return nil }
     do {
       let tag: Tag = try await client.post(endpoint: Tags.unfollow(id: id))
       tags.removeAll { $0.id == tag.id }
@@ -120,7 +126,7 @@ import Observation
   }
 
   public func fetchFollowerRequests() async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     do {
       followRequests = try await client.get(endpoint: FollowRequests.list)
     } catch {
@@ -129,7 +135,7 @@ import Observation
   }
 
   public func acceptFollowerRequest(id: String) async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     do {
       updatingFollowRequestAccountIds.insert(id)
       defer {
@@ -141,7 +147,7 @@ import Observation
   }
 
   public func rejectFollowerRequest(id: String) async {
-    guard let client else { return }
+    guard let client = activeClient else { return }
     do {
       updatingFollowRequestAccountIds.insert(id)
       defer {
