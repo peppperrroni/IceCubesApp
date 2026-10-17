@@ -29,9 +29,7 @@ import Observation
 
   private let logger = Logger(subsystem: "com.icecubesapp", category: "stream")
 
-  public static let shared = StreamWatcher()
-
-  private init() {
+  public init() {
   }
 
   public func setClient(client: MastodonClient, instanceStreamingURL: URL?) {

@@ -22,7 +22,11 @@ import SwiftUI
 
   let userFollowedTag: HTMLString.Link?
 
-  private let theme = Theme.shared
+  private let theme: Theme
+  private let userPreferences: UserPreferences
+  private let currentAccount: CurrentAccount
+  private let statusEmbedCache: StatusEmbedCache
+  private let watcher: StreamWatcher
   private let userMentionned: Bool
 
   var isPinned: Bool
@@ -148,8 +152,18 @@ import SwiftUI
     showActions: Bool = true,
     textDisabled: Bool = false,
     scrollToId: Binding<String?>? = nil,
-    filterContext: Filter.Context? = nil
+    filterContext: Filter.Context? = nil,
+    theme: Theme,
+    userPreferences: UserPreferences,
+    currentAccount: CurrentAccount,
+    statusEmbedCache: StatusEmbedCache,
+    watcher: StreamWatcher
   ) {
+    self.theme = theme
+    self.userPreferences = userPreferences
+    self.currentAccount = currentAccount
+    self.statusEmbedCache = statusEmbedCache
+    self.watcher = watcher
     self.status = status
     finalStatus = status.reblog ?? status
     self.client = client
@@ -164,13 +178,13 @@ import SwiftUI
     } else {
       isPinned = status.pinned == true
     }
-    if UserPreferences.shared.autoExpandSpoilers {
+    if userPreferences.autoExpandSpoilers {
       displaySpoiler = false
     } else {
       displaySpoiler = !finalStatus.spoilerText.asRawText.isEmpty
     }
 
-    if status.mentions.first(where: { $0.id == CurrentAccount.shared.account?.id }) != nil {
+    if status.mentions.first(where: { $0.id == currentAccount.account?.id }) != nil {
       userMentionned = true
     } else {
       userMentionned = false
@@ -178,7 +192,7 @@ import SwiftUI
 
     userFollowedTag = finalStatus.content.links.first(where: { link in
       link.type == .hashtag
-        && CurrentAccount.shared.tags.contains(where: {
+        && currentAccount.tags.contains(where: {
           $0.name.lowercased() == link.title.lowercased()
         })
     })
@@ -186,7 +200,7 @@ import SwiftUI
     isFiltered = filter != nil
 
     if let url = embededStatusURL(),
-      let embed = StatusEmbedCache.shared.get(url: url)
+      let embed = statusEmbedCache.get(url: url)
     {
       isEmbedLoading = false
       embeddedStatus = embed
@@ -195,13 +209,13 @@ import SwiftUI
     {
       embeddedStatus = quotedStatus
     } else if let id = finalStatus.quote?.quotedStatusId,
-      let embed = StatusEmbedCache.shared.get(id: id)
+      let embed = statusEmbedCache.get(id: id)
     {
       isEmbedLoading = false
       embeddedStatus = embed
     }
 
-    collapseLongPosts = UserPreferences.shared.collapseLongPosts
+    collapseLongPosts = userPreferences.collapseLongPosts
     recalcCollapse()
   }
 
@@ -247,7 +261,7 @@ import SwiftUI
     let content = finalStatus.content
     if !content.statusesURLs.isEmpty,
       let url = content.statusesURLs.first,
-      !StatusEmbedCache.shared.badStatusesURLs.contains(url),
+      !statusEmbedCache.badStatusesURLs.contains(url),
       client.hasConnection(with: url)
     {
       return url
@@ -270,7 +284,7 @@ import SwiftUI
       return
     }
 
-    if let embed = StatusEmbedCache.shared.get(url: url) {
+    if let embed = statusEmbedCache.get(url: url) {
       isEmbedLoading = false
       embeddedStatus = embed
       return
@@ -292,9 +306,9 @@ import SwiftUI
         embed = results.statuses.first
       }
       if let embed {
-        StatusEmbedCache.shared.set(url: url, status: embed)
+        statusEmbedCache.set(url: url, status: embed)
       } else {
-        StatusEmbedCache.shared.badStatusesURLs.insert(url)
+        statusEmbedCache.badStatusesURLs.insert(url)
       }
       withAnimation {
         embeddedStatus = embed
@@ -302,7 +316,7 @@ import SwiftUI
       }
     } catch {
       isEmbedLoading = false
-      StatusEmbedCache.shared.badStatusesURLs.insert(url)
+      statusEmbedCache.badStatusesURLs.insert(url)
     }
   }
 
@@ -312,12 +326,12 @@ import SwiftUI
       finalStatus.quote?.quotedStatus == nil
     {
       isEmbedLoading = true
-      if let embed = StatusEmbedCache.shared.get(id: id) {
+      if let embed = statusEmbedCache.get(id: id) {
         embeddedStatus = embed
         isEmbedLoading = false
         return true
       } else if let embed: Status = try? await client.get(endpoint: Statuses.status(id: id)) {
-        StatusEmbedCache.shared.set(id: id, status: embed)
+        statusEmbedCache.set(id: id, status: embed)
         embeddedStatus = embed
         isEmbedLoading = false
         return true
@@ -350,7 +364,7 @@ import SwiftUI
   }
 
   func delete() async throws {
-    StreamWatcher.shared.emmitDeleteEvent(for: status.id)
+    watcher.emmitDeleteEvent(for: status.id)
     _ = try await client.delete(endpoint: Statuses.status(id: status.id))
   }
 
@@ -365,7 +379,7 @@ import SwiftUI
       let rebloggers: [Account] = try await client.get(
         endpoint: Statuses.rebloggedBy(id: status.id, maxId: nil))
       var quoters: [Account] = []
-      if finalStatus.quotesCount ?? 0 > 0, CurrentAccount.shared.account?.id == status.account.id {
+      if finalStatus.quotesCount ?? 0 > 0, currentAccount.account?.id == status.account.id {
         let statuses: [Status] = try await client.get(
           endpoint: Statuses.quotesBy(id: status.id, maxId: nil))
         quoters = statuses.map { $0.account }
@@ -464,7 +478,7 @@ import SwiftUI
   }
 
   private func getDeepLClient() -> DeepLClient {
-    let userAPIfree = UserPreferences.shared.userDeeplAPIFree
+    let userAPIfree = userPreferences.userDeeplAPIFree
 
     return DeepLClient(userAPIKey: userAPIKey, userAPIFree: userAPIfree)
   }
@@ -476,7 +490,7 @@ import SwiftUI
   func updatePreferredTranslation() {
     if DeepLUserAPIHandler.shouldAlwaysUseDeepl {
       preferredTranslationType = .useDeepl
-    } else if UserPreferences.shared.preferredTranslationType == .useApple {
+    } else if userPreferences.preferredTranslationType == .useApple {
       preferredTranslationType = .useApple
     } else {
       preferredTranslationType = .useServerIfPossible

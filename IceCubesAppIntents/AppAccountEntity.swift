@@ -23,7 +23,7 @@ public struct DefaultAppAccountEntityQuery: EntityQuery {
   public init() {}
 
   public func entities(for identifiers: [AppAccountEntity.ID]) async throws -> [AppAccountEntity] {
-    return await AppAccountsManager.shared.availableAccounts.filter { account in
+    return await AppAccountsManager().availableAccounts.filter { account in
       identifiers.contains { id in
         id == account.id
       }
@@ -31,10 +31,10 @@ public struct DefaultAppAccountEntityQuery: EntityQuery {
   }
 
   public func suggestedEntities() async throws -> [AppAccountEntity] {
-    await AppAccountsManager.shared.availableAccounts.map { .init(account: $0) }
+    await AppAccountsManager().availableAccounts.map { .init(account: $0) }
   }
 
   public func defaultResult() async -> AppAccountEntity? {
-    await .init(account: AppAccountsManager.shared.currentAccount)
+    await .init(account: AppAccountsManager().currentAccount)
   }
 }

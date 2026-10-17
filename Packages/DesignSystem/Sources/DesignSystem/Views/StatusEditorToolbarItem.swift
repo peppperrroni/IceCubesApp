@@ -24,6 +24,7 @@ extension ToolbarContent {
 
 @MainActor
 public struct StatusEditorToolbarItem: ToolbarContent {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.openWindow) private var openWindow
   @Environment(RouterPath.self) private var routerPath
 
@@ -41,7 +42,7 @@ public struct StatusEditorToolbarItem: ToolbarContent {
             openWindow(value: WindowDestinationEditor.newStatusEditor(visibility: visibility))
           #else
             routerPath.presentedSheet = .newStatusEditor(visibility: visibility)
-            HapticManager.shared.fireHaptic(.buttonPress)
+            hapticManager.fireHaptic(.buttonPress)
           #endif
         }
       } label: {

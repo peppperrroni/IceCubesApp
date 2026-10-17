@@ -8,6 +8,11 @@ import SwiftUI
 
 @MainActor
 struct NotificationRowContentView: View {
+  @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
   let notification: ConsolidatedNotification
   let client: MastodonClient
   let routerPath: RouterPath
@@ -23,7 +28,8 @@ struct NotificationRowContentView: View {
                 client: client,
                 routerPath: routerPath,
                 showActions: true,
-                filterContext: .notifications)
+                filterContext: .notifications,
+                  theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
             )
             .environment(\.isNotificationsTab, false)
             .environment(\.isMediaCompact, false)
@@ -35,7 +41,8 @@ struct NotificationRowContentView: View {
                 routerPath: routerPath,
                 showActions: false,
                 textDisabled: notification.type != .quote,
-                filterContext: .notifications)
+                filterContext: .notifications,
+                  theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
             )
             .environment(\.isMediaCompact, true)
           }

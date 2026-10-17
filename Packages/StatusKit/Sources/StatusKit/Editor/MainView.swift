@@ -16,6 +16,7 @@ extension StatusEditor {
     @Environment(AppAccountsManager.self) private var appAccounts
     @Environment(CurrentAccount.self) private var currentAccount
     @Environment(Theme.self) private var theme
+    @Environment(SoundEffectManager.self) private var soundEffectManager
 
     @State private var presentationDetent: PresentationDetent = .large
     @State private var mainStore: EditorStore

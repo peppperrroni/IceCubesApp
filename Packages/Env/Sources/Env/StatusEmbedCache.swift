@@ -3,15 +3,14 @@ import Models
 import SwiftUI
 
 @MainActor
+@Observable
 public class StatusEmbedCache {
-  public static let shared = StatusEmbedCache()
+  @ObservationIgnored private var cache: [URL: Status] = [:]
+  @ObservationIgnored private var cacheById: [String: Status] = [:]
 
-  private var cache: [URL: Status] = [:]
-  private var cacheById: [String: Status] = [:]
+  @ObservationIgnored public var badStatusesURLs = Set<URL>()
 
-  public var badStatusesURLs = Set<URL>()
-
-  private init() {}
+  public init() {}
 
   public func set(url: URL, status: Status) {
     cache[url] = status

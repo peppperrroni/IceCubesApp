@@ -24,7 +24,7 @@ public enum DeepLUserAPIHandler {
   }
 
   public static func readKeyIfAllowed() -> String? {
-    guard UserPreferences.shared.preferredTranslationType == .useDeepl else { return nil }
+    guard UserPreferences.current.preferredTranslationType == .useDeepl else { return nil }
 
     return readKeyInternal()
   }
@@ -39,9 +39,9 @@ public enum DeepLUserAPIHandler {
   }
 
   public static func deactivateToggleIfNoKey() {
-    if UserPreferences.shared.preferredTranslationType == .useDeepl {
+    if UserPreferences.current.preferredTranslationType == .useDeepl {
       if readKeyInternal() == nil {
-        UserPreferences.shared.preferredTranslationType = .useServerIfPossible
+        UserPreferences.current.preferredTranslationType = .useServerIfPossible
       }
     }
   }

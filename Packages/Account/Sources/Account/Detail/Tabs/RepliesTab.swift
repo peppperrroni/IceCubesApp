@@ -11,9 +11,9 @@ struct RepliesTab {
   let isAvailableForCurrentUser = true
   let isAvailableForOtherUsers = true
 
-  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool) -> any StatusesFetcher
+  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) -> any StatusesFetcher
   {
-    RepliesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+    RepliesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser, statusDataControllerProvider: statusDataControllerProvider)
   }
 
   func makeView(
@@ -47,7 +47,7 @@ private class RepliesTabFetcher: AccountTabFetcher {
         )
       )
 
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
       updateStatusesState(with: statuses, hasMore: statuses.count >= 20)
     } catch {
       statusesState = .error(error: .noData)
@@ -70,7 +70,7 @@ private class RepliesTabFetcher: AccountTabFetcher {
     )
 
     statuses.append(contentsOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
     updateStatusesState(with: statuses, hasMore: newStatuses.count >= 20)
   }
 }

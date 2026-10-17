@@ -9,12 +9,21 @@ import SwiftUI
 
 @MainActor
 @Observable class DisplaySettingsLocalValues {
-  var tintColor = Theme.shared.tintColor
-  var primaryBackgroundColor = Theme.shared.primaryBackgroundColor
-  var secondaryBackgroundColor = Theme.shared.secondaryBackgroundColor
-  var labelColor = Theme.shared.labelColor
-  var lineSpacing = Theme.shared.lineSpacing
-  var fontSizeScale = Theme.shared.fontSizeScale
+  var tintColor: Color
+  var primaryBackgroundColor: Color
+  var secondaryBackgroundColor: Color
+  var labelColor: Color
+  var lineSpacing: Double
+  var fontSizeScale: Double
+
+  init(theme: Theme) {
+    tintColor = theme.tintColor
+    primaryBackgroundColor = theme.primaryBackgroundColor
+    secondaryBackgroundColor = theme.secondaryBackgroundColor
+    labelColor = theme.labelColor
+    lineSpacing = theme.lineSpacing
+    fontSizeScale = theme.fontSizeScale
+  }
 }
 
 @MainActor
@@ -25,21 +34,27 @@ struct DisplaySettingsView: View {
   @Environment(Theme.self) private var theme
   @Environment(UserPreferences.self) private var userPreferences
 
-  @State private var localValues = DisplaySettingsLocalValues()
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
 
-  private let previewStatusViewModel = StatusRowViewModel(
-    status: Status.placeholder(forSettings: true, language: "la"),
-    client: MastodonClient(server: ""),
-    routerPath: RouterPath())  // translate from latin button
+  @State private var localValues: DisplaySettingsLocalValues
+  @State private var previewStatusViewModel: StatusRowViewModel?
+
+  init(theme: Theme) {
+    _localValues = State(initialValue: DisplaySettingsLocalValues(theme: theme))
+  }
 
   var body: some View {
     ZStack(alignment: .top) {
       Form {
         #if !os(visionOS)
-          StatusRowExternalView(viewModel: previewStatusViewModel)
-            .allowsHitTesting(false)
-            .opacity(0)
-            .hidden()
+          if let previewStatusViewModel {
+            StatusRowExternalView(viewModel: previewStatusViewModel)
+              .allowsHitTesting(false)
+              .opacity(0)
+              .hidden()
+          }
           themeSection
         #endif
         fontSection
@@ -48,6 +63,16 @@ struct DisplaySettingsView: View {
         resetSection
       }
       .navigationTitle("settings.display.navigation-title")
+      .onAppear {
+        if previewStatusViewModel == nil {
+          previewStatusViewModel = StatusRowViewModel(
+            status: Status.placeholder(forSettings: true, language: "la"),
+            client: MastodonClient(server: ""),
+            routerPath: RouterPath(),  // translate from latin button
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+            statusEmbedCache: statusEmbedCache, watcher: watcher)
+        }
+      }
       #if !os(visionOS)
         .scrollContentBackground(.hidden)
         .background(theme.secondaryBackgroundColor)
@@ -82,8 +107,10 @@ struct DisplaySettingsView: View {
     }
   }
 
+  @ViewBuilder
   private var examplePost: some View {
-    VStack(spacing: 0) {
+    if let previewStatusViewModel {
+      VStack(spacing: 0) {
       StatusRowExternalView(viewModel: previewStatusViewModel)
         .allowsHitTesting(false)
         .padding(.layoutPadding)
@@ -99,6 +126,7 @@ struct DisplaySettingsView: View {
           LinearGradient(
             gradient: Gradient(colors: [theme.secondaryBackgroundColor, .clear]),
             startPoint: .top, endPoint: .bottom))
+    }
     }
   }
 

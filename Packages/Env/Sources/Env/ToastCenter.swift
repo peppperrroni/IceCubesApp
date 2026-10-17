@@ -64,7 +64,7 @@ public final class ToastCenter {
     }
   }
 
-  public static let shared = ToastCenter()
+  public init() {}
 
   public var toast: Toast?
   private var dismissalTask: Task<Void, Never>?

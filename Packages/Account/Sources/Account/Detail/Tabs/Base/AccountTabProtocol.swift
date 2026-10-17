@@ -14,7 +14,7 @@ public protocol AccountTabProtocol: Identifiable, Hashable {
   var isAvailableForCurrentUser: Bool { get }
   var isAvailableForOtherUsers: Bool { get }
 
-  @MainActor func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool)
+  @MainActor func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider)
     -> any StatusesFetcher
   @MainActor @ViewBuilder func makeView(
     fetcher: any StatusesFetcher, client: MastodonClient, routerPath: RouterPath, account: Account?

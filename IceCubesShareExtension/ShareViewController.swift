@@ -12,30 +12,30 @@ class ShareViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    let appAccountsManager = AppAccountsManager.shared
+    let appAccountsManager = AppAccountsManager()
     let client = appAccountsManager.currentClient
-    let account = CurrentAccount.shared
-    let instance = CurrentInstance.shared
+    let account = CurrentAccount()
+    let instance = CurrentInstance()
     account.setClient(client: client)
     instance.setClient(client: client)
     Task {
       await instance.fetchCurrentInstance()
     }
     let colorScheme = traitCollection.userInterfaceStyle
-    let theme = Theme.shared
+    let theme = Theme()
     theme.setColor(withName: colorScheme == .dark ? .iceCubeDark : .iceCubeLight)
 
     if let item = extensionContext?.inputItems.first as? NSExtensionItem {
       if let attachments = item.attachments {
         let view = StatusEditor.MainView(mode: .shareExtension(items: attachments))
-          .environment(UserPreferences.shared)
+          .environment(UserPreferences())
           .environment(appAccountsManager)
           .environment(client)
           .environment(account)
           .environment(theme)
           .environment(instance)
           .environment(RouterPath())
-          .environment(ToastCenter.shared)
+          .environment(ToastCenter())
           .modelContainer(for: [
             Draft.self,
             LocalTimeline.self,

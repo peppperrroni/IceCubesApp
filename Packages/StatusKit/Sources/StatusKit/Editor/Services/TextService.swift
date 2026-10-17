@@ -116,7 +116,7 @@ extension StatusEditor {
           spoilerOn: !status.spoilerText.asRawText.isEmpty,
           spoilerText: status.spoilerText.asRawText,
           visibility: preferences?.getReplyVisibility(of: status)
-            ?? UserPreferences.shared.getReplyVisibility(of: status),
+            ?? UserPreferences.current.getReplyVisibility(of: status),
           replyToStatus: status,
           embeddedStatus: nil
         )
@@ -275,7 +275,7 @@ extension StatusEditor {
       let range = NSRange(location: 0, length: text.string.utf16.count)
       text.addAttributes(
         [
-          .foregroundColor: UIColor(theme?.labelColor ?? Theme.shared.labelColor),
+          .foregroundColor: UIColor(theme?.labelColor ?? Theme.current.labelColor),
           .font: Font.scaledBodyUIFont,
           .backgroundColor: UIColor.clear,
           .underlineColor: UIColor.clear,

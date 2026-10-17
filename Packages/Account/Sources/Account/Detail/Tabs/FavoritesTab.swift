@@ -11,9 +11,9 @@ struct FavoritesTab {
   let isAvailableForCurrentUser = true
   let isAvailableForOtherUsers = false
 
-  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool) -> any StatusesFetcher
+  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) -> any StatusesFetcher
   {
-    FavoritesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+    FavoritesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser, statusDataControllerProvider: statusDataControllerProvider)
   }
 
   func makeView(
@@ -43,7 +43,7 @@ private class FavoritesTabFetcher: AccountTabFetcher {
       statuses = result.0
       nextPage = result.1
 
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
       updateStatusesState(with: statuses, hasMore: nextPage != nil)
     } catch {
       statusesState = .error(error: .noData)
@@ -61,7 +61,7 @@ private class FavoritesTabFetcher: AccountTabFetcher {
     nextPage = result.1
 
     statuses.append(contentsOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
     updateStatusesState(with: statuses, hasMore: nextPage != nil)
   }
 }

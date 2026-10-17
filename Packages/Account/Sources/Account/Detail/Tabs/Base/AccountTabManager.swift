@@ -1,3 +1,4 @@
+import Env
 import Models
 import NetworkClient
 import Observation
@@ -41,7 +42,10 @@ public class AccountTabManager {
   private var currentFetcher: (any StatusesFetcher)?
   private var fetchers: [String: any StatusesFetcher] = [:]
 
-  public init(accountId: String, client: MastodonClient, isCurrentUser: Bool) {
+  private let statusDataControllerProvider: StatusDataControllerProvider
+
+  public init(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) {
+    self.statusDataControllerProvider = statusDataControllerProvider
     self.accountId = accountId
     self.client = client
     self.isCurrentUser = isCurrentUser
@@ -57,7 +61,8 @@ public class AccountTabManager {
     }
 
     let fetcher = tab.createFetcher(
-      accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+      accountId: accountId, client: client, isCurrentUser: isCurrentUser,
+      statusDataControllerProvider: statusDataControllerProvider)
     fetchers[tab.id] = fetcher
     return fetcher
   }
