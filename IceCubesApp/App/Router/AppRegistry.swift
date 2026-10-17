@@ -42,23 +42,7 @@ extension View {
 
   /// For scenes that do not inherit the main window's environment.
   func withEnvironments(_ deps: AppDependencies) -> some View {
-    let session = deps.makeSession(client: deps.appAccountsManager.currentClient)
-    return environment(session.currentAccount)
-      .environment(deps.userPreferences)
-      .environment(session.currentInstance)
-      .environment(deps.theme)
-      .environment(deps.appAccountsManager)
-      .environment(deps.pushNotificationsService)
-      .environment(session.client)
-      .environment(session.streamWatcher)
-      .environment(\.session, session)
-      .environment(deps.quickLook)
-      .environment(deps.toastCenter)
-      .environment(deps.hapticManager)
-      .environment(deps.soundEffectManager)
-      .environment(deps.statusEmbedCache)
-      .environment(deps.statusDataControllerProvider)
-      .environment(deps.timelineContentFilter)
+    modifier(SceneEnvironments(deps: deps))
   }
 
   func withModelContainer() -> some View {
@@ -113,6 +97,7 @@ private struct AppDependencyGraph: ViewModifier {
       .task(id: deps.appAccountsManager.currentClient.id) {
         let client = deps.appAccountsManager.currentClient
         if client.id != session.client.id {
+          session.streamWatcher.stopWatching()  // the old session's socket must not outlive it
           session = deps.makeSession(client: client)  // same id keeps the session
         }
         deps.quickLook.namespace = namespace
@@ -136,6 +121,37 @@ private struct AppDependencyGraph: ViewModifier {
         default: break
         }
       }
+  }
+}
+
+/// For scenes that do not inherit the main window's environment: one session per scene, owned by state.
+private struct SceneEnvironments: ViewModifier {
+  let deps: AppDependencies
+  @State private var session: SessionDependencies
+
+  init(deps: AppDependencies) {
+    self.deps = deps
+    _session = State(initialValue: deps.makeSession(client: deps.appAccountsManager.currentClient))
+  }
+
+  func body(content: Content) -> some View {
+    content
+      .environment(session.currentAccount)
+      .environment(deps.userPreferences)
+      .environment(session.currentInstance)
+      .environment(deps.theme)
+      .environment(deps.appAccountsManager)
+      .environment(deps.pushNotificationsService)
+      .environment(session.client)
+      .environment(session.streamWatcher)
+      .environment(\.session, session)
+      .environment(deps.quickLook)
+      .environment(deps.toastCenter)
+      .environment(deps.hapticManager)
+      .environment(deps.soundEffectManager)
+      .environment(deps.statusEmbedCache)
+      .environment(deps.statusDataControllerProvider)
+      .environment(deps.timelineContentFilter)
   }
 }
 

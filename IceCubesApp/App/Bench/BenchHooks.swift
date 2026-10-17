@@ -60,6 +60,7 @@ enum BenchHooks {
       check("recreate_session", access.sessionObjects(sA2)["currentAccount"] !== objA["currentAccount"])
       // Enforced by the dependency-graph owner (same client id keeps the session); recorded by construction.
       check("same_client_keeps_session", true)
+      print("BENCH scope_detail_same_client_keeps_session=by construction")
       access.appObjectsUsing(sA!)
       featureRefs = weakRefs(fo1, ["timelineViewModel", "datasource", "unreadObserver"])
       sessionRefs = weakRefs(objA, ["client", "currentAccount", "currentInstance", "streamWatcher"])
