@@ -8,6 +8,7 @@ import SwiftUI
 
 @MainActor
 struct ExploreTab: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
   @Environment(Theme.self) private var theme
   @Environment(UserPreferences.self) private var preferences
   @Environment(CurrentAccount.self) private var currentAccount
@@ -33,6 +34,7 @@ struct ExploreTab: View {
     }
     .onAppear {
       routerPath.client = client
+      routerPath.statusEmbedCache = statusEmbedCache
     }
   }
 }

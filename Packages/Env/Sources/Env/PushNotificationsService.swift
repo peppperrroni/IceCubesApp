@@ -120,9 +120,8 @@ public struct HandledNotification: Equatable {
     static let endpoint = "https://icecubesrelay.fly.dev"
   }
 
-  public static let shared = PushNotificationsService()
-
   private let pushKeys = PushKeys()
+  private let userPreferences: UserPreferences
 
   public private(set) var subscriptions: [PushNotificationSubscriptionSettings] = []
 
@@ -132,7 +131,8 @@ public struct HandledNotification: Equatable {
   
   public var tokens: [OauthToken] = []
 
-  override init() {
+  public init(userPreferences: UserPreferences) {
+    self.userPreferences = userPreferences
     super.init()
 
     UNUserNotificationCenter.current().delegate = self
@@ -204,7 +204,7 @@ extension PushNotificationsService: UNUserNotificationCenterDelegate {
     _ center: UNUserNotificationCenter,
     willPresent notification: UNNotification
   ) async -> UNNotificationPresentationOptions {
-    UserPreferences.shared.reloadNotificationsCount(tokens: tokens)
+    userPreferences.reloadNotificationsCount(tokens: tokens)
     return [.banner, .sound]
   }
 }

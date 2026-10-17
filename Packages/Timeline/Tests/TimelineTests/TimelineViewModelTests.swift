@@ -1,3 +1,4 @@
+import Env
 import Models
 import NetworkClient
 import Testing
@@ -8,8 +9,18 @@ import XCTest
 @MainActor
 @Suite("Timeline View Model tests")
 struct Tests {
+  let preferences = UserPreferences()
+  let contentFilter = TimelineContentFilter()
+
+  func makeViewModel(statusFetcher: TimelineStatusFetching = TimelineStatusFetcher()) -> TimelineViewModel {
+    TimelineViewModel(
+      statusFetcher: statusFetcher, userPreferences: preferences,
+      statusDataControllerProvider: StatusDataControllerProvider(), watcher: StreamWatcher(),
+      timelineContentFilter: contentFilter, hapticManager: HapticManager(userPreferences: preferences))
+  }
+
   func makeSubject() -> TimelineViewModel {
-    let subject = TimelineViewModel()
+    let subject = makeViewModel()
     let client = MastodonClient(server: "localhost")
     subject.client = client
     subject.timeline = .home
@@ -109,7 +120,6 @@ struct Tests {
 
   @Test
   func autoFetchesWhenFilteredStatusesAreEmpty() async throws {
-    let contentFilter = TimelineContentFilter.shared
     contentFilter.showBoosts = true
     contentFilter.showReplies = true
     contentFilter.showThreads = true
@@ -123,7 +133,7 @@ struct Tests {
       firstPage: hiddenFirstPage,
       nextPages: [hiddenSecondPage, visibleThirdPage])
 
-    let subject = TimelineViewModel(statusFetcher: fetcher)
+    let subject = makeViewModel(statusFetcher: fetcher)
     subject.client = MastodonClient(server: "localhost")
     await subject.reset()
 
@@ -148,7 +158,7 @@ struct Tests {
       quote: try makeQuote(quotedStatusId: "123")
     )
 
-    let datasource = TimelineDatasource()
+    let datasource = TimelineDatasource(contentFilter: contentFilter)
     await datasource.set([normalStatus, legacyQuoteStatus, nativeQuoteStatus])
 
     let snapshot = TimelineContentFilter.Snapshot(
@@ -177,7 +187,7 @@ struct Tests {
     )
     let regularHuman = makeStatus(id: "regular-human", hidden: false)
 
-    let datasource = TimelineDatasource()
+    let datasource = TimelineDatasource(contentFilter: contentFilter)
     await datasource.set([boostedBotByHuman, boostedHumanByBot, regularHuman])
 
     let snapshot = TimelineContentFilter.Snapshot(

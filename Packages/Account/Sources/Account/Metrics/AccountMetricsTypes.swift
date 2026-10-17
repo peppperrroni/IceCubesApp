@@ -60,7 +60,7 @@ enum MetricType: String, CaseIterable, Identifiable {
   var tintColor: Color {
     switch self {
     case .mention:
-      Theme.shared.tintColor.opacity(0.80)
+      Theme.current.tintColor.opacity(0.80)
     case .reblog:
       Color.teal.opacity(0.80)
     case .follow:

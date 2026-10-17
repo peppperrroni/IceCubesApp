@@ -4,6 +4,7 @@ import SwiftUI
 
 @MainActor
 public struct AppAccountsSelectorView: View {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(UserPreferences.self) private var preferences
   @Environment(CurrentAccount.self) private var currentAccount
   @Environment(AppAccountsManager.self) private var appAccounts
@@ -48,7 +49,7 @@ public struct AppAccountsSelectorView: View {
   public var body: some View {
     Button {
       isPresented.toggle()
-      HapticManager.shared.fireHaptic(.buttonPress)
+      hapticManager.fireHaptic(.buttonPress)
     } label: {
       labelView
         .contentShape(.circle)
@@ -78,7 +79,7 @@ public struct AppAccountsSelectorView: View {
           accountsView
             .presentationDetents([.height(preferredHeight), .large])
             .navigationTransition(
-              .zoom(sourceID: CurrentAccount.shared.account?.id ?? "", in: transition)
+              .zoom(sourceID: currentAccount.account?.id ?? "", in: transition)
             )
             .onAppear {
               refreshAccounts()
@@ -183,7 +184,7 @@ public struct AppAccountsSelectorView: View {
   private var addAccountButton: some View {
     Button {
       isPresented = false
-      HapticManager.shared.fireHaptic(.buttonPress)
+      hapticManager.fireHaptic(.buttonPress)
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         routerPath.presentedSheet = .addAccount
       }
@@ -195,7 +196,7 @@ public struct AppAccountsSelectorView: View {
   private var settingsButton: some View {
     Button {
       isPresented = false
-      HapticManager.shared.fireHaptic(.buttonPress)
+      hapticManager.fireHaptic(.buttonPress)
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         routerPath.presentedSheet = .settings
       }
@@ -207,7 +208,7 @@ public struct AppAccountsSelectorView: View {
   private var supportButton: some View {
     Button {
       isPresented = false
-      HapticManager.shared.fireHaptic(.buttonPress)
+      hapticManager.fireHaptic(.buttonPress)
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         routerPath.presentedSheet = .support
       }
@@ -219,7 +220,7 @@ public struct AppAccountsSelectorView: View {
   private var aboutButton: some View {
     Button {
       isPresented = false
-      HapticManager.shared.fireHaptic(.buttonPress)
+      hapticManager.fireHaptic(.buttonPress)
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         routerPath.presentedSheet = .about
       }

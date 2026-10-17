@@ -98,7 +98,7 @@ extension Models.Notification.NotificationType {
     }
     switch self {
     case .status, .mention, .update, .poll:
-      return Theme.shared.tintColor.opacity(0.80)
+      return Theme.current.tintColor.opacity(0.80)
     case .reblog, .quote, .quoted_update:
       return Color.teal.opacity(0.80)
     case .follow, .follow_request:

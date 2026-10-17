@@ -64,7 +64,7 @@ private struct SafariRouter: ViewModifier {
             #if os(visionOS)
               return .systemAction
             #else
-              return safariManager.open(url)
+              return safariManager.open(url, theme: theme, preferences: preferences)
             #endif
           #else
             return .systemAction
@@ -87,17 +87,19 @@ private struct SafariRouter: ViewModifier {
     var windowScene: UIWindowScene?
     let viewController: UIViewController = .init()
     var window: UIWindow?
+    private var theme: Theme?
 
     @MainActor
-    func open(_ url: URL) -> OpenURLAction.Result {
+    func open(_ url: URL, theme: Theme, preferences: UserPreferences) -> OpenURLAction.Result {
       guard let windowScene else { return .systemAction }
+      self.theme = theme
 
       let configuration = SFSafariViewController.Configuration()
-      configuration.entersReaderIfAvailable = UserPreferences.shared.inAppBrowserReaderView
+      configuration.entersReaderIfAvailable = preferences.inAppBrowserReaderView
 
       let safari = SFSafariViewController(url: url, configuration: configuration)
-      safari.preferredBarTintColor = UIColor(Theme.shared.primaryBackgroundColor)
-      safari.preferredControlTintColor = UIColor(Theme.shared.tintColor)
+      safari.preferredBarTintColor = UIColor(theme.primaryBackgroundColor)
+      safari.preferredControlTintColor = UIColor(theme.tintColor)
       safari.delegate = self
 
       DispatchQueue.main.async { [weak self] in
@@ -128,11 +130,13 @@ private struct SafariRouter: ViewModifier {
       window.rootViewController = viewController
       window.makeKeyAndVisible()
 
-      switch Theme.shared.selectedScheme {
+      switch theme?.selectedScheme {
       case .dark:
         window.overrideUserInterfaceStyle = .dark
       case .light:
         window.overrideUserInterfaceStyle = .light
+      case nil:
+        break
       }
 
       self.window = window

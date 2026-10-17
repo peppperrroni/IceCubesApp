@@ -12,9 +12,9 @@ struct StatusesTab {
   let isAvailableForCurrentUser = true
   let isAvailableForOtherUsers = true
 
-  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool) -> any StatusesFetcher
+  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) -> any StatusesFetcher
   {
-    StatusesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+    StatusesTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser, statusDataControllerProvider: statusDataControllerProvider)
   }
 
   func makeView(
@@ -59,8 +59,8 @@ private class StatusesTabFetcher: AccountTabFetcher {
         )
       )
 
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
-      StatusDataControllerProvider.shared.updateDataControllers(for: pinned, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: pinned, client: client)
 
       updateStatusesState(with: statuses, hasMore: statuses.count >= 20)
     } catch {
@@ -84,7 +84,7 @@ private class StatusesTabFetcher: AccountTabFetcher {
     )
 
     statuses.append(contentsOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
     updateStatusesState(with: statuses, hasMore: newStatuses.count >= 20)
   }
 
@@ -103,6 +103,10 @@ private class StatusesTabFetcher: AccountTabFetcher {
 }
 
 private struct StatusesTabView: View {
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
   let fetcher: StatusesTabFetcher
   let client: MastodonClient
   let routerPath: RouterPath
@@ -148,7 +152,8 @@ private struct StatusesTabView: View {
           status: status,
           client: client,
           routerPath: routerPath,
-          filterContext: .account)
+          filterContext: .account,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
       )
     }
 

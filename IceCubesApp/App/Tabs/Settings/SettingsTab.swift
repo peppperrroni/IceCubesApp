@@ -12,6 +12,8 @@ import Timeline
 
 @MainActor
 struct SettingsTabs: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.dismiss) private var dismiss
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -78,7 +80,7 @@ struct SettingsTabs: View {
       .navigationDestination(item: $startingPoint) { targetView in
         switch targetView {
         case .display:
-          DisplaySettingsView()
+          DisplaySettingsView(theme: theme)
         case .haptic:
           HapticSettingsView()
         case .remoteTimelines:
@@ -100,6 +102,7 @@ struct SettingsTabs: View {
     }
     .onAppear {
       routerPath.client = client
+      routerPath.statusEmbedCache = statusEmbedCache
     }
     .task {
       if appAccountsManager.currentAccount.oauthToken != nil {
@@ -166,10 +169,10 @@ struct SettingsTabs: View {
           Label("settings.general.instance", systemImage: "server.rack")
         }
       }
-      NavigationLink(destination: DisplaySettingsView()) {
+      NavigationLink(destination: DisplaySettingsView(theme: theme)) {
         Label("settings.general.display", systemImage: "paintpalette")
       }
-      if HapticManager.shared.supportsHaptics {
+      if hapticManager.supportsHaptics {
         NavigationLink(destination: HapticSettingsView()) {
           Label("settings.general.haptic", systemImage: "waveform.path")
         }

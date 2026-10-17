@@ -8,6 +8,8 @@ import SwiftUI
 
 @MainActor
 public struct StatusRowView: View {
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.openWindow) private var openWindow
   @Environment(\.isInCaptureMode) private var isInCaptureMode: Bool
   @Environment(\.redactionReasons) private var reasons
@@ -237,7 +239,7 @@ public struct StatusRowView: View {
       StatusRowSelectableTextView(content: content)
     }
     .environment(
-      StatusDataControllerProvider.shared.dataController(
+      statusDataControllerProvider.dataController(
         for: viewModel.finalStatus,
         client: viewModel.client)
     )
@@ -303,19 +305,19 @@ public struct StatusRowView: View {
   private var accessibilityActions: some View {
     // Add reply and quote, which are lost when the swipe actions are removed
     Button("status.action.reply") {
-      HapticManager.shared.fireHaptic(.notification(.success))
+      hapticManager.fireHaptic(.notification(.success))
       viewModel.routerPath.presentedSheet = .replyToStatusEditor(status: viewModel.status)
     }
 
     Button("settings.swipeactions.status.action.quote") {
-      HapticManager.shared.fireHaptic(.notification(.success))
+      hapticManager.fireHaptic(.notification(.success))
       viewModel.routerPath.presentedSheet = .quoteStatusEditor(status: viewModel.status)
     }
     .disabled(viewModel.status.visibility == .direct || viewModel.status.visibility == .priv)
 
     if viewModel.finalStatus.mediaAttachments.isEmpty == false {
       Button("accessibility.status.media-viewer-action.label") {
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager.fireHaptic(.notification(.success))
         let attachments = viewModel.finalStatus.mediaAttachments
         #if targetEnvironment(macCatalyst) || os(visionOS)
           openWindow(
@@ -337,14 +339,14 @@ public struct StatusRowView: View {
     }
 
     Button("@\(viewModel.status.account.username)") {
-      HapticManager.shared.fireHaptic(.notification(.success))
+      hapticManager.fireHaptic(.notification(.success))
       viewModel.routerPath.navigate(to: .accountDetail(id: viewModel.status.account.id))
     }
 
     // Add a reference to the post creator
     if viewModel.status.account != viewModel.finalStatus.account {
       Button("@\(viewModel.finalStatus.account.username)") {
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager.fireHaptic(.notification(.success))
         viewModel.routerPath.navigate(to: .accountDetail(id: viewModel.finalStatus.account.id))
       }
     }
@@ -355,18 +357,18 @@ public struct StatusRowView: View {
       case .url:
         if UIApplication.shared.canOpenURL(link.url) {
           Button("accessibility.tabs.timeline.content-link-\(link.title)") {
-            HapticManager.shared.fireHaptic(.notification(.success))
+            hapticManager.fireHaptic(.notification(.success))
             _ = viewModel.routerPath.handle(url: link.url)
           }
         }
       case .hashtag:
         Button("accessibility.tabs.timeline.content-hashtag-\(link.title)") {
-          HapticManager.shared.fireHaptic(.notification(.success))
+          hapticManager.fireHaptic(.notification(.success))
           _ = viewModel.routerPath.handle(url: link.url)
         }
       case .mention:
         Button("\(link.title)") {
-          HapticManager.shared.fireHaptic(.notification(.success))
+          hapticManager.fireHaptic(.notification(.success))
           _ = viewModel.routerPath.handle(url: link.url)
         }
       }
@@ -414,30 +416,25 @@ public struct StatusRowView: View {
 }
 
 #Preview {
+  let theme = Theme()
+  let userPreferences = UserPreferences()
+  let currentAccount = CurrentAccount()
+  let statusEmbedCache = StatusEmbedCache()
+  let watcher = StreamWatcher()
   List {
-    StatusRowView(
-      viewModel:
-        .init(
-          status: .placeholder(),
-          client: .init(server: ""),
-          routerPath: RouterPath()),
-      context: .timeline)
-    StatusRowView(
-      viewModel:
-        .init(
-          status: .placeholder(),
-          client: .init(server: ""),
-          routerPath: RouterPath()),
-      context: .timeline)
-    StatusRowView(
-      viewModel:
-        .init(
-          status: .placeholder(),
-          client: .init(server: ""),
-          routerPath: RouterPath()),
-      context: .timeline)
+    ForEach(0..<3) { _ in
+      StatusRowView(
+        viewModel:
+          .init(
+            status: .placeholder(),
+            client: .init(server: ""),
+            routerPath: RouterPath(),
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+            statusEmbedCache: statusEmbedCache, watcher: watcher),
+        context: .timeline)
+    }
   }
   .listStyle(.plain)
   .withPreviewsEnv()
-  .environment(Theme.shared)
+  .environment(theme)
 }

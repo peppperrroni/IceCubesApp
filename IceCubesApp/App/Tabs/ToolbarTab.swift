@@ -5,6 +5,7 @@ import SwiftUI
 
 @MainActor
 struct ToolbarTab: ToolbarContent {
+  @Environment(CurrentAccount.self) private var currentAccount
   @Environment(\.isSecondaryColumn) private var isSecondaryColumn: Bool
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -51,7 +52,7 @@ struct ToolbarTab: ToolbarContent {
           .offset(x: -12)
       #endif
     }
-    .matchedTransitionSource(id: CurrentAccount.shared.account?.id ?? "", in: transition)
+    .matchedTransitionSource(id: currentAccount.account?.id ?? "", in: transition)
     .sharedBackgroundVisibility(.hidden)
   }
 

@@ -9,6 +9,8 @@ import Timeline
 
 @MainActor
 struct NotificationsTab: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(CurrentInstance.self) private var currentInstance
   @Environment(\.isSecondaryColumn) private var isSecondaryColumn: Bool
   @Environment(\.scenePhase) private var scenePhase
 
@@ -26,7 +28,7 @@ struct NotificationsTab: View {
 
   var body: some View {
     NavigationStack(path: $routerPath.path) {
-      NotificationsListView(lockedType: lockedType)
+      NotificationsListView(lockedType: lockedType, currentInstance: currentInstance)
         .rootTabScrollEdgeEffect()
         .withAppRouter()
         .withSheetDestinations(
@@ -51,6 +53,7 @@ struct NotificationsTab: View {
     }
     .onAppear {
       routerPath.client = client
+      routerPath.statusEmbedCache = statusEmbedCache
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         clearNotifications()
       }

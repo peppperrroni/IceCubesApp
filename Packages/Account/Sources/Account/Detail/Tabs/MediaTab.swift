@@ -12,9 +12,9 @@ struct MediaTab {
   let isAvailableForCurrentUser = false
   let isAvailableForOtherUsers = true
 
-  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool) -> any StatusesFetcher
+  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) -> any StatusesFetcher
   {
-    MediaTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+    MediaTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser, statusDataControllerProvider: statusDataControllerProvider)
   }
 
   func makeView(
@@ -50,7 +50,7 @@ private class MediaTabFetcher: AccountTabFetcher {
         )
       )
 
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
       updateStatusesState(with: statuses, hasMore: statuses.count >= 20)
     } catch {
       statusesState = .error(error: .noData)
@@ -73,7 +73,7 @@ private class MediaTabFetcher: AccountTabFetcher {
     )
 
     statuses.append(contentsOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
     updateStatusesState(with: statuses, hasMore: newStatuses.count >= 20)
   }
 }

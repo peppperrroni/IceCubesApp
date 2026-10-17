@@ -373,6 +373,9 @@ struct StatusRowMediaPreviewView_Previews: PreviewProvider {
 }
 
 struct WrapperForPreview: View {
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(QuickLook.self) private var quickLook
+  @Environment(Theme.self) private var theme
   @State private var isCompact = false
   @State private var isInCaptureMode = false
 
@@ -394,9 +397,9 @@ struct WrapperForPreview: View {
         }
       }
       .environment(SceneDelegate())
-      .environment(UserPreferences.shared)
-      .environment(QuickLook.shared)
-      .environment(Theme.shared)
+      .environment(userPreferences)
+      .environment(quickLook)
+      .environment(theme)
       .environment(\.isMediaCompact, isCompact)
       .environment(\.isInCaptureMode, isInCaptureMode)
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 @MainActor
 struct MessagesTab: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
   @Environment(Theme.self) private var theme
   @Environment(StreamWatcher.self) private var watcher
   @Environment(MastodonClient.self) private var client
@@ -34,6 +35,7 @@ struct MessagesTab: View {
     }
     .onAppear {
       routerPath.client = client
+      routerPath.statusEmbedCache = statusEmbedCache
     }
     .withSafariRouter()
     .environment(routerPath)

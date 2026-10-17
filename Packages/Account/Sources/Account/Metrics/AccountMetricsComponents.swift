@@ -4,6 +4,7 @@ import Env
 import SwiftUI
 
 struct MetricsChartCard: View {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.calendar) private var calendar
   @Environment(Theme.self) private var theme
 
@@ -100,7 +101,7 @@ struct MetricsChartCard: View {
         }
 
         lastHapticDayStart = dayStart
-        HapticManager.shared.fireHaptic(.timeline)
+        hapticManager.fireHaptic(.timeline)
       }
     }
     .padding(12)

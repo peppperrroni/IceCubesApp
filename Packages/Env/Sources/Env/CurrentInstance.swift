@@ -10,8 +10,6 @@ import Observation
 
   private var client: MastodonClient?
 
-  public static let shared = CurrentInstance()
-
   private var version: Float {
     if let stringVersion = instance?.version {
       if stringVersion.utf8.count > 2 {
@@ -60,7 +58,7 @@ import Observation
     instance?.apiVersions?.mastodon ?? 0 >= 7
   }
 
-  private init() {}
+  public init() {}
 
   public func setClient(client: MastodonClient) {
     self.client = client

@@ -68,7 +68,9 @@ extension StatusEditor {
     private let mediaIngestionService = MediaIngestionService()
     private let mediaUploadService = MediaUploadService()
     private let mediaDescriptionService = MediaDescriptionService()
-    private let postingService = PostingService()
+    private var postingService = PostingService()
+    var toastCenter: ToastCenter?
+    var hapticManager: HapticManager?
     private let customEmojiService = CustomEmojiService()
     private var suggestedTask: Task<Void, Never>?
     private var hasConfigured = false
@@ -217,10 +219,16 @@ extension StatusEditor {
       currentAccount: Account?,
       theme: Theme,
       preferences: UserPreferences,
-      currentInstance: CurrentInstance
+      currentInstance: CurrentInstance,
+      toastCenter: ToastCenter,
+      hapticManager: HapticManager,
+      watcher: StreamWatcher
     ) {
       guard !hasConfigured else { return }
 
+      self.toastCenter = toastCenter
+      self.hapticManager = hapticManager
+      postingService.watcher = watcher
       self.client = client
       self.currentAccount = currentAccount
       self.theme = theme
@@ -238,14 +246,20 @@ extension StatusEditor {
       if let client,
         let theme,
         let preferences,
-        let currentInstance
+        let currentInstance,
+        let toastCenter,
+        let hapticManager,
+        let watcher = postingService.watcher
       {
         store.configureIfNeeded(
           client: client,
           currentAccount: currentAccount,
           theme: theme,
           preferences: preferences,
-          currentInstance: currentInstance
+          currentInstance: currentInstance,
+          toastCenter: toastCenter,
+          hapticManager: hapticManager,
+          watcher: watcher
         )
       }
 
@@ -280,7 +294,7 @@ extension StatusEditor {
       do {
         postingProgress = 0
         if let postingToastID {
-          ToastCenter.shared.updateProgress(id: postingToastID, progress: postingProgress)
+          toastCenter?.updateProgress(id: postingToastID, progress: postingProgress)
         }
         if postingTimer == nil {
           postingTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
@@ -288,7 +302,7 @@ extension StatusEditor {
               if self.postingProgress < 100 {
                 self.postingProgress += 0.5
                 if let postingToastID = self.postingToastID {
-                  ToastCenter.shared.updateProgress(id: postingToastID, progress: self.postingProgress)
+                  self.toastCenter?.updateProgress(id: postingToastID, progress: self.postingProgress)
                 }
               }
               if self.postingProgress >= 100 {
@@ -322,7 +336,7 @@ extension StatusEditor {
           pendingMediaAttributes: pendingMediaDescriptions.mediaAttributes,
           embeddedStatusId: embeddedStatus?.id,
           allMediaHasDescription: allMediaHasDescription,
-          requiresAltText: preferences?.appRequireAltText ?? UserPreferences.shared.appRequireAltText
+          requiresAltText: preferences?.appRequireAltText ?? UserPreferences.current.appRequireAltText
         )
 
         let postStatus = try await postingService.submit(
@@ -337,10 +351,10 @@ extension StatusEditor {
           postingProgress = 100.0
         }
         if let postingToastID {
-          ToastCenter.shared.updateProgress(id: postingToastID, progress: postingProgress)
+          toastCenter?.updateProgress(id: postingToastID, progress: postingProgress)
         }
         try await Task.sleep(for: .seconds(0.5))
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager?.fireHaptic(.notification(.success))
 
         if hasExplicitlySelectedLanguage, let selectedLanguage {
           preferences?.markLanguageAsSelected(isoCode: selectedLanguage)
@@ -360,7 +374,7 @@ extension StatusEditor {
           showPostingErrorAlert = true
         }
         isPosting = false
-        HapticManager.shared.fireHaptic(.notification(.error))
+        hapticManager?.fireHaptic(.notification(.error))
         return nil
       }
     }

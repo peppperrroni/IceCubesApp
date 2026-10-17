@@ -4,12 +4,18 @@ import SwiftUI
 @MainActor
 extension View {
   public func withPreviewsEnv() -> some View {
-    environment(RouterPath())
+    let userPreferences = UserPreferences()
+    return environment(RouterPath())
       .environment(MastodonClient(server: ""))
-      .environment(CurrentAccount.shared)
-      .environment(UserPreferences.shared)
-      .environment(CurrentInstance.shared)
-      .environment(PushNotificationsService.shared)
-      .environment(QuickLook.shared)
+      .environment(CurrentAccount())
+      .environment(userPreferences)
+      .environment(CurrentInstance())
+      .environment(PushNotificationsService(userPreferences: userPreferences))
+      .environment(QuickLook())
+      .environment(HapticManager(userPreferences: userPreferences))
+      .environment(SoundEffectManager(userPreferences: userPreferences))
+      .environment(StatusEmbedCache())
+      .environment(StatusDataControllerProvider())
+      .environment(ToastCenter())
   }
 }

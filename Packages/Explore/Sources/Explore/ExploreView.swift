@@ -8,6 +8,12 @@ import SwiftUI
 
 @MainActor
 public struct ExploreView: View {
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
+  @Environment(SoundEffectManager.self) private var soundEffectManager
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(Theme.self) private var theme
   @Environment(MastodonClient.self) private var client
   @Environment(RouterPath.self) private var routerPath
@@ -113,11 +119,11 @@ public struct ExploreView: View {
       }
       .refreshable {
         Task {
-          SoundEffectManager.shared.playSound(.pull)
-          HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.3))
+          soundEffectManager.playSound(.pull)
+          hapticManager.fireHaptic(.dataRefresh(intensity: 0.3))
           await fetchTrending()
-          HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.7))
-          SoundEffectManager.shared.playSound(.refresh)
+          hapticManager.fireHaptic(.dataRefresh(intensity: 0.7))
+          soundEffectManager.playSound(.refresh)
         }
       }
       .listStyle(.grouped)
@@ -151,7 +157,8 @@ public struct ExploreView: View {
           status: status,
           client: client,
           routerPath: routerPath,
-          filterContext: .pub)
+          filterContext: .pub,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
       )
       .padding(.vertical, 8)
       .redacted(reason: .placeholder)

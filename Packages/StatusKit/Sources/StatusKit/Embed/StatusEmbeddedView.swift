@@ -8,6 +8,10 @@ import SwiftUI
 @MainActor
 public struct StatusEmbeddedView: View {
   @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
 
   public let status: Status
   public let client: MastodonClient
@@ -28,7 +32,9 @@ public struct StatusEmbeddedView: View {
             status: status,
             client: client,
             routerPath: routerPath,
-            showActions: false),
+            showActions: false,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+            statusEmbedCache: statusEmbedCache, watcher: watcher),
           context: .timeline
         )
         .accessibilityLabel(status.content.asRawText)

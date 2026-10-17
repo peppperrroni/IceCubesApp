@@ -6,6 +6,7 @@ import SwiftUI
 
 @MainActor
 public struct StatusDetailView: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
   @Environment(Theme.self) private var theme
   @Environment(CurrentAccount.self) private var currentAccount
   @Environment(StreamWatcher.self) private var watcher
@@ -23,16 +24,16 @@ public struct StatusDetailView: View {
   /// By using ``@AccessibilityFocusState`` and setting focus once, we work around this issue.
   @AccessibilityFocusState private var initialFocusBugWorkaround: Bool
 
-  public init(statusId: String) {
-    _viewModel = .init(wrappedValue: .init(statusId: statusId))
+  public init(statusId: String, statusDataControllerProvider: StatusDataControllerProvider) {
+    _viewModel = .init(wrappedValue: .init(statusId: statusId, statusDataControllerProvider: statusDataControllerProvider))
   }
 
-  public init(status: Status) {
-    _viewModel = .init(wrappedValue: .init(status: status))
+  public init(status: Status, statusDataControllerProvider: StatusDataControllerProvider) {
+    _viewModel = .init(wrappedValue: .init(status: status, statusDataControllerProvider: statusDataControllerProvider))
   }
 
-  public init(remoteStatusURL: URL) {
-    _viewModel = .init(wrappedValue: .init(remoteStatusURL: remoteStatusURL))
+  public init(remoteStatusURL: URL, statusDataControllerProvider: StatusDataControllerProvider) {
+    _viewModel = .init(wrappedValue: .init(remoteStatusURL: remoteStatusURL, statusDataControllerProvider: statusDataControllerProvider))
   }
 
   public var body: some View {
@@ -122,7 +123,9 @@ public struct StatusDetailView: View {
         client: client,
         routerPath: routerPath,
         scrollToId: $viewModel.scrollToId,
-        filterContext: .thread)
+        filterContext: .thread,
+        theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+        statusEmbedCache: statusEmbedCache, watcher: watcher)
       let isFocused = self.viewModel.statusId == status.id
 
       StatusRowView(viewModel: viewModel, context: .detail)
@@ -164,7 +167,8 @@ public struct StatusDetailView: View {
           status: status,
           client: client,
           routerPath: routerPath,
-          filterContext: .thread),
+          filterContext: .thread,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher),
         context: .timeline
       )
       .redacted(reason: .placeholder)

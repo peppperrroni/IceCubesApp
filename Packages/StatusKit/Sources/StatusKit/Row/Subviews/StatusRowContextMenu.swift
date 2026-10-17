@@ -6,6 +6,8 @@ import SwiftUI
 
 @MainActor
 struct StatusRowContextMenu: View {
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(SoundEffectManager.self) private var soundEffectManager
   @Environment(\.openWindow) var openWindow
 
   @Environment(MastodonClient.self) private var client
@@ -64,8 +66,8 @@ struct StatusRowContextMenu: View {
         }
         Button {
           Task {
-            HapticManager.shared.fireHaptic(.notification(.success))
-            SoundEffectManager.shared.playSound(.boost)
+            hapticManager.fireHaptic(.notification(.success))
+            soundEffectManager.playSound(.boost)
             await statusDataController.toggleReblog(remoteStatus: nil)
           }
         } label: {
@@ -76,8 +78,8 @@ struct StatusRowContextMenu: View {
 
         Button {
           Task {
-            HapticManager.shared.fireHaptic(.notification(.success))
-            SoundEffectManager.shared.playSound(.favorite)
+            hapticManager.fireHaptic(.notification(.success))
+            soundEffectManager.playSound(.favorite)
             await statusDataController.toggleFavorite(remoteStatus: nil)
           }
         } label: {
@@ -89,8 +91,8 @@ struct StatusRowContextMenu: View {
 
         Button {
           Task {
-            SoundEffectManager.shared.playSound(.bookmark)
-            HapticManager.shared.fireHaptic(.notification(.success))
+            soundEffectManager.playSound(.bookmark)
+            hapticManager.fireHaptic(.notification(.success))
             await statusDataController.toggleBookmark(remoteStatus: nil)
           }
         } label: {

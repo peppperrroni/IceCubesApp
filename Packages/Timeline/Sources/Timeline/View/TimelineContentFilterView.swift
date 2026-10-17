@@ -9,12 +9,13 @@ public struct TimelineContentFilterView: View {
   @Environment(CurrentInstance.self) private var currentInstance
   @Environment(RouterPath.self) private var routerPath
 
-  @State private var contentFilter = TimelineContentFilter.shared
+  @Environment(TimelineContentFilter.self) private var contentFilter
   @State private var isEditingFilters = false
 
   public init() {}
 
   public var body: some View {
+    @Bindable var contentFilter = contentFilter
     NavigationStack {
       Form {
         Section {

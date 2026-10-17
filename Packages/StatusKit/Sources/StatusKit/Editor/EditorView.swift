@@ -8,12 +8,16 @@ import SwiftUI
 extension StatusEditor {
   @MainActor
   struct EditorView: View {
+    @Environment(StatusEmbedCache.self) private var statusEmbedCache
     @Environment(Theme.self) private var theme
     @Environment(UserPreferences.self) private var preferences
     @Environment(CurrentAccount.self) private var currentAccount
     @Environment(CurrentInstance.self) private var currentInstance
     @Environment(AppAccountsManager.self) private var appAccounts
     @Environment(MastodonClient.self) private var client
+    @Environment(ToastCenter.self) private var toastCenter
+    @Environment(HapticManager.self) private var hapticManager
+    @Environment(StreamWatcher.self) private var watcher
 
     #if targetEnvironment(macCatalyst)
       @Environment(\.dismissWindow) private var dismissWindow
@@ -168,7 +172,8 @@ extension StatusEditor {
             status: status,
             client: client,
             routerPath: RouterPath(),
-            showActions: false),
+            showActions: false,
+              theme: theme, userPreferences: preferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher),
           context: .timeline
         )
         .accessibilityLabel(status.content.asRawText)
@@ -282,7 +287,10 @@ extension StatusEditor {
         currentAccount: currentAccount.account,
         theme: theme,
         preferences: preferences,
-        currentInstance: currentInstance
+        currentInstance: currentInstance,
+        toastCenter: toastCenter,
+        hapticManager: hapticManager,
+        watcher: watcher
       )
       if !client.isAuth {
         #if targetEnvironment(macCatalyst)
