@@ -16,60 +16,12 @@ import Timeline
 @MainActor
 extension View {
   func withAppDependencyGraph(
-    appAccountsManager: AppAccountsManager,
-    currentAccount: CurrentAccount,
-    currentInstance: CurrentInstance,
-    userPreferences: UserPreferences,
-    theme: Theme,
-    watcher: StreamWatcher,
-    pushNotificationsService: PushNotificationsService,
+    deps: AppDependencies,
     appIntentService: AppIntentService,
-    quickLook: QuickLook,
-    toastCenter: ToastCenter,
-    hapticManager: HapticManager,
-    soundEffectManager: SoundEffectManager,
-    statusEmbedCache: StatusEmbedCache,
-    statusDataControllerProvider: StatusDataControllerProvider,
-    timelineContentFilter: TimelineContentFilter,
     namespace: Namespace.ID,
     isSupporter: Bool
   ) -> some View {
-    environment(appAccountsManager)
-      .environment(hapticManager)
-      .environment(soundEffectManager)
-      .environment(statusEmbedCache)
-      .environment(statusDataControllerProvider)
-      .environment(timelineContentFilter)
-      .environment(appAccountsManager.currentClient)
-      .environment(quickLook)
-      .environment(currentAccount)
-      .environment(currentInstance)
-      .environment(userPreferences)
-      .environment(theme)
-      .environment(watcher)
-      .environment(pushNotificationsService)
-      .environment(appIntentService)
-      .environment(toastCenter)
-      .environment(\.isSupporter, isSupporter)
-      .task(id: appAccountsManager.currentClient.id) {
-        let client = appAccountsManager.currentClient
-        quickLook.namespace = namespace
-        currentAccount.setClient(client: client)
-        currentInstance.setClient(client: client)
-        userPreferences.setClient(client: client)
-        await currentInstance.fetchCurrentInstance()
-        watcher.setClient(
-          client: client,
-          instanceStreamingURL: currentInstance.instance?.urls?.streamingApi)
-        if client.isAuth {
-          watcher.watch(streams: [.user, .direct])
-        } else {
-          watcher.stopWatching()
-        }
-      }
-      .task(id: appAccountsManager.pushAccounts.map(\.token)) {
-        pushNotificationsService.tokens = appAccountsManager.pushAccounts.map(\.token)
-      }
+    modifier(AppDependencyGraph(deps: deps, appIntentService: appIntentService, namespace: namespace, isSupporter: isSupporter))
   }
 
   func withAppRouter() -> some View {
@@ -90,13 +42,16 @@ extension View {
 
   /// For scenes that do not inherit the main window's environment.
   func withEnvironments(_ deps: AppDependencies) -> some View {
-    environment(deps.currentAccount)
+    let session = deps.makeSession(client: deps.appAccountsManager.currentClient)
+    return environment(session.currentAccount)
       .environment(deps.userPreferences)
-      .environment(deps.currentInstance)
+      .environment(session.currentInstance)
       .environment(deps.theme)
       .environment(deps.appAccountsManager)
       .environment(deps.pushNotificationsService)
-      .environment(deps.appAccountsManager.currentClient)
+      .environment(session.client)
+      .environment(session.streamWatcher)
+      .environment(\.session, session)
       .environment(deps.quickLook)
       .environment(deps.toastCenter)
       .environment(deps.hapticManager)
@@ -117,6 +72,72 @@ extension View {
   }
 }
 
+
+/// Injects the app scope and owns the session scope: the session is replaced when the current client's id changes.
+private struct AppDependencyGraph: ViewModifier {
+  let deps: AppDependencies
+  let appIntentService: AppIntentService
+  let namespace: Namespace.ID
+  let isSupporter: Bool
+  @Environment(\.scenePhase) private var scenePhase
+  @State private var session: SessionDependencies
+
+  init(deps: AppDependencies, appIntentService: AppIntentService, namespace: Namespace.ID, isSupporter: Bool) {
+    self.deps = deps
+    self.appIntentService = appIntentService
+    self.namespace = namespace
+    self.isSupporter = isSupporter
+    _session = State(initialValue: deps.makeSession(client: deps.appAccountsManager.currentClient))
+  }
+
+  func body(content: Content) -> some View {
+    content
+      .environment(deps.appAccountsManager)
+      .environment(deps.hapticManager)
+      .environment(deps.soundEffectManager)
+      .environment(deps.statusEmbedCache)
+      .environment(deps.statusDataControllerProvider)
+      .environment(deps.timelineContentFilter)
+      .environment(deps.quickLook)
+      .environment(deps.userPreferences)
+      .environment(deps.theme)
+      .environment(deps.pushNotificationsService)
+      .environment(appIntentService)
+      .environment(deps.toastCenter)
+      .environment(\.session, session)
+      .environment(session.client)
+      .environment(session.currentAccount)
+      .environment(session.currentInstance)
+      .environment(session.streamWatcher)
+      .environment(\.isSupporter, isSupporter)
+      .task(id: deps.appAccountsManager.currentClient.id) {
+        let client = deps.appAccountsManager.currentClient
+        if client.id != session.client.id {
+          session = deps.makeSession(client: client)  // same id keeps the session
+        }
+        deps.quickLook.namespace = namespace
+        await session.currentInstance.fetchCurrentInstance()
+        session.streamWatcher.setClient(
+          client: client,
+          instanceStreamingURL: session.currentInstance.instance?.urls?.streamingApi)
+        if client.isAuth {
+          session.streamWatcher.watch(streams: [.user, .direct])
+        } else {
+          session.streamWatcher.stopWatching()
+        }
+      }
+      .task(id: deps.appAccountsManager.pushAccounts.map(\.token)) {
+        deps.pushNotificationsService.tokens = deps.appAccountsManager.pushAccounts.map(\.token)
+      }
+      .onChange(of: scenePhase) { _, phase in
+        switch phase {
+        case .background: session.streamWatcher.stopWatching()
+        case .active: session.streamWatcher.watch(streams: [.user, .direct])
+        default: break
+        }
+      }
+  }
+}
 
 private struct AppRouter: ViewModifier {
   @Environment(Theme.self) private var theme
@@ -153,39 +174,31 @@ private struct AppRouter: ViewModifier {
       case .conversationDetail(let conversation):
         ConversationDetailView(conversation: conversation)
       case .hashTag(let tag, let accountId):
-        TimelineView(
+        TimelineHost(
           timeline: .constant(.hashtag(tag: tag, accountId: accountId)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false,
-          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
+          canFilterTimeline: false)
       case .list(let list):
-        TimelineView(
+        TimelineHost(
           timeline: .constant(.list(list: list)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false,
-          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
+          canFilterTimeline: false)
       case .collectionDetail(let collection):
         CollectionDetailView(collection: collection)
       case .linkTimeline(let url, let title):
-        TimelineView(
+        TimelineHost(
           timeline: .constant(.link(url: url, title: title)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false,
-          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
+          canFilterTimeline: false)
       case .quotes(let id):
-        TimelineView(
+        TimelineHost(
           timeline: .constant(.quotes(statusId: id)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false,
-          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
+          canFilterTimeline: false)
       case .following(let id):
         AccountsListView(mode: .following(accountId: id))
       case .followers(let id):
@@ -197,13 +210,11 @@ private struct AppRouter: ViewModifier {
       case .accountsList(let accounts):
         AccountsListView(mode: .accountsList(accounts: accounts))
       case .trendingTimeline:
-        TimelineView(
+        TimelineHost(
           timeline: .constant(.trending),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false,
-          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
+          canFilterTimeline: false)
       case .trendingLinks(let cards):
         TrendingLinksListView(cards: cards)
       case .tagsList(let tags):

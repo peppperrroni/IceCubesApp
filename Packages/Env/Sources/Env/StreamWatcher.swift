@@ -32,6 +32,11 @@ import Observation
   public init() {
   }
 
+  public convenience init(client: MastodonClient) {
+    self.init()
+    setClient(client: client, instanceStreamingURL: nil)
+  }
+
   public func setClient(client: MastodonClient, instanceStreamingURL: URL?) {
     if self.client != nil {
       stopWatching()

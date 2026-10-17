@@ -48,13 +48,11 @@ struct TimelineTab: View {
 
   var body: some View {
     NavigationStack(path: $routerPath.path) {
-      TimelineView(
+      TimelineHost(
         timeline: $timeline,
         pinnedFilters: $pinnedFilters,
         selectedTagGroup: $selectedTagGroup,
-        canFilterTimeline: canFilterTimeline,
-        userPreferences: preferences, statusDataControllerProvider: statusDataControllerProvider,
-        watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager
+        canFilterTimeline: canFilterTimeline
       )
       .withAppRouter()
       .withSheetDestinations(

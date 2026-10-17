@@ -7,7 +7,8 @@ import NetworkClient
 import StatusKit
 import Timeline
 
-/// Composition root as a Needle bootstrap component: one scope, one `shared` instance per service.
+/// Composition root as a Needle bootstrap component: app scope. Session and feature scopes are
+/// child components (SessionComponent, TimelineComponent) linked by `XComponent(parent: self)`.
 /// This file is the source of truth for the benchmark manifest (apps/icecubes/manifest.json).
 /// NeedleFoundation is Swift-5-mode without actor support, so MainActor types are built inside
 /// `MainActor.assumeIsolated`; the root is created on the main thread by IceCubesApp.
@@ -23,13 +24,10 @@ nonisolated final class AppDependencies: BootstrapComponent {
     return shared { MainActor.assumeIsolated { SoundEffectManager(userPreferences: userPreferences) } }
   }
   public var appAccountsManager: AppAccountsManager { shared { MainActor.assumeIsolated { AppAccountsManager() } } }
-  public var currentInstance: CurrentInstance { shared { MainActor.assumeIsolated { CurrentInstance() } } }
-  public var currentAccount: CurrentAccount { shared { MainActor.assumeIsolated { CurrentAccount() } } }
   public var pushNotificationsService: PushNotificationsService {
     let userPreferences = userPreferences
     return shared { MainActor.assumeIsolated { PushNotificationsService(userPreferences: userPreferences) } }
   }
-  public var streamWatcher: StreamWatcher { shared { MainActor.assumeIsolated { StreamWatcher() } } }
   public var quickLook: QuickLook { shared { MainActor.assumeIsolated { QuickLook() } } }
   public var toastCenter: ToastCenter { shared { MainActor.assumeIsolated { ToastCenter() } } }
   public var statusEmbedCache: StatusEmbedCache { shared { MainActor.assumeIsolated { StatusEmbedCache() } } }
@@ -38,5 +36,12 @@ nonisolated final class AppDependencies: BootstrapComponent {
   }
   public var timelineContentFilter: TimelineContentFilter {
     shared { MainActor.assumeIsolated { TimelineContentFilter() } }
+  }
+
+  /// Session scope: a child component per current client.
+  @MainActor func makeSession(client: MastodonClient) -> SessionDependencies {
+    let component = SessionComponent(parent: self, client: client)
+    userPreferences.setClient(client: client)  // app-scope object, per-server preferences
+    return SessionDependencies(component: component)
   }
 }

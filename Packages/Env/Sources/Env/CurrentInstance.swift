@@ -60,6 +60,11 @@ import Observation
 
   public init() {}
 
+  public convenience init(client: MastodonClient) {
+    self.init()
+    setClient(client: client)
+  }
+
   public func setClient(client: MastodonClient) {
     self.client = client
   }
