@@ -70,19 +70,20 @@ struct AvatarView_Previews: PreviewProvider {
 }
 
 struct PreviewWrapper: View {
+  @Environment(Theme.self) private var theme
   @State private var isCircleAvatar = false
 
   var body: some View {
     VStack(alignment: .leading) {
       AvatarView(Self.account.avatar)
-        .environment(Theme.shared)
+        .environment(theme)
       Toggle("Avatar Shape", isOn: $isCircleAvatar)
     }
     .onChange(of: isCircleAvatar) {
-      Theme.shared.avatarShape = isCircleAvatar ? .circle : .rounded
+      theme.avatarShape = isCircleAvatar ? .circle : .rounded
     }
     .onAppear {
-      Theme.shared.avatarShape = isCircleAvatar ? .circle : .rounded
+      theme.avatarShape = isCircleAvatar ? .circle : .rounded
     }
   }
 

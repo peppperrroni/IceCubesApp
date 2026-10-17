@@ -10,6 +10,8 @@ extension IceCubesApp {
       AppView(selectedTab: $selectedTab, appRouterPath: $appRouterPath)
         .applyTheme(theme)
         .onAppear {
+          appDelegate.pushNotificationsService = deps.pushNotificationsService
+          appDelegate.appAccountsManager = deps.appAccountsManager
           setupRevenueCat()
           refreshPushSubs()
         }
@@ -24,6 +26,11 @@ extension IceCubesApp {
           appIntentService: appIntentService,
           quickLook: quickLook,
           toastCenter: toastCenter,
+          hapticManager: deps.hapticManager,
+          soundEffectManager: deps.soundEffectManager,
+          statusEmbedCache: deps.statusEmbedCache,
+          statusDataControllerProvider: deps.statusDataControllerProvider,
+          timelineContentFilter: deps.timelineContentFilter,
           namespace: namespace,
           isSupporter: isSupporter)
         .sheet(item: $quickLook.selectedMediaAttachment) { selectedMediaAttachment in
@@ -104,7 +111,7 @@ extension IceCubesApp {
           EmptyView()
         }
       }
-      .withEnvironments()
+      .withEnvironments(deps)
       .environment(\.isCatalystWindow, true)
       .environment(RouterPath())
       .withModelContainer()
@@ -125,7 +132,7 @@ extension IceCubesApp {
           EmptyView()
         }
       }
-      .withEnvironments()
+      .withEnvironments(deps)
       .withModelContainer()
       .applyTheme(theme)
       .environment(\.isCatalystWindow, true)

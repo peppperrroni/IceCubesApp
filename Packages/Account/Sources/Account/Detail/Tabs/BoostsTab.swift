@@ -11,10 +11,10 @@ struct BoostsTab {
   let isAvailableForCurrentUser = true
   let isAvailableForOtherUsers = true
 
-  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool)
+  func createFetcher(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider)
     -> any StatusesFetcher
   {
-    BoostsTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser)
+    BoostsTabFetcher(accountId: accountId, client: client, isCurrentUser: isCurrentUser, statusDataControllerProvider: statusDataControllerProvider)
   }
 
   func makeView(
@@ -51,7 +51,7 @@ private class BoostsTabFetcher: AccountTabFetcher {
       )
 
       boosts = statuses.filter { $0.reblog != nil }
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
       updateStatusesState(with: boosts, hasMore: statuses.count >= 20)
     } catch {
       statusesState = .error(error: .noData)
@@ -77,7 +77,7 @@ private class BoostsTabFetcher: AccountTabFetcher {
     let newBoosts = newStatuses.filter { $0.reblog != nil }
     boosts.append(contentsOf: newBoosts)
 
-    StatusDataControllerProvider.shared.updateDataControllers(for: newStatuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: newStatuses, client: client)
     updateStatusesState(with: boosts, hasMore: newStatuses.count >= 20)
   }
 }

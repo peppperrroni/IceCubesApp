@@ -137,6 +137,7 @@ public enum SettingsStartingPoint {
 @MainActor
 @Observable public class RouterPath {
   public var client: MastodonClient?
+  public var statusEmbedCache: StatusEmbedCache?
   public var urlHandler: ((URL) -> OpenURLAction.Result)?
 
   public var path: [RouterDestination] = []
@@ -182,7 +183,7 @@ public enum SettingsStartingPoint {
       client.hasConnection(with: url),
       let id = Int(url.lastPathComponent)
     {
-      if !StatusEmbedCache.shared.badStatusesURLs.contains(url) {
+      if statusEmbedCache?.badStatusesURLs.contains(url) != true {
         if url.absoluteString.contains(client.server) {
           navigate(to: .statusDetail(id: String(id)))
         } else {

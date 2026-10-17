@@ -5,6 +5,7 @@ import SwiftUI
 
 @MainActor
 public struct AppAccountView: View {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(Theme.self) private var theme
   @Environment(RouterPath.self) private var routerPath
   @Environment(AppAccountsManager.self) private var appAccounts
@@ -53,18 +54,18 @@ public struct AppAccountView: View {
         if viewModel.isInSettings {
           routerPath.navigate(
             to: .accountSettingsWithAccount(account: account, appAccount: viewModel.appAccount))
-          HapticManager.shared.fireHaptic(.buttonPress)
+          hapticManager.fireHaptic(.buttonPress)
         } else {
           isParentPresented = false
           routerPath.navigate(to: .accountDetailWithAccount(account: account))
-          HapticManager.shared.fireHaptic(.buttonPress)
+          hapticManager.fireHaptic(.buttonPress)
         }
       } else {
         var transation = Transaction()
         transation.disablesAnimations = true
         withTransaction(transation) {
           appAccounts.currentAccount = viewModel.appAccount
-          HapticManager.shared.fireHaptic(.notification(.success))
+          hapticManager.fireHaptic(.notification(.success))
         }
       }
     } label: {

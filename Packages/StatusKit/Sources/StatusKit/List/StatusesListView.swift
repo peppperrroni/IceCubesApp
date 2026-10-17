@@ -6,7 +6,11 @@ import SwiftUI
 
 @MainActor
 public struct StatusesListView<Fetcher>: View where Fetcher: StatusesFetcher {
+  @Environment(CurrentAccount.self) private var currentAccount
   @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
 
   @State private var fetcher: Fetcher
   // Whether this status is on a remote local timeline (many actions are unavailable if so)
@@ -38,7 +42,9 @@ public struct StatusesListView<Fetcher>: View where Fetcher: StatusesFetcher {
             status: status,
             client: client,
             routerPath: routerPath,
-            filterContext: filterContext),
+            filterContext: filterContext,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+            statusEmbedCache: statusEmbedCache, watcher: watcher),
           context: .timeline
         )
         .redacted(reason: .placeholder)
@@ -63,7 +69,9 @@ public struct StatusesListView<Fetcher>: View where Fetcher: StatusesFetcher {
             client: client,
             routerPath: routerPath,
             isRemote: isRemote,
-            filterContext: filterContext),
+            filterContext: filterContext,
+            theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+            statusEmbedCache: statusEmbedCache, watcher: watcher),
           context: .timeline
         )
         .onAppear {
@@ -86,7 +94,9 @@ public struct StatusesListView<Fetcher>: View where Fetcher: StatusesFetcher {
                 client: client,
                 routerPath: routerPath,
                 isRemote: isRemote,
-                filterContext: filterContext),
+                filterContext: filterContext,
+                theme: theme, userPreferences: userPreferences, currentAccount: currentAccount,
+                statusEmbedCache: statusEmbedCache, watcher: watcher),
               context: .timeline
             )
             .onAppear {
@@ -161,7 +171,7 @@ public struct StatusesListView<Fetcher>: View where Fetcher: StatusesFetcher {
     if let status {
       if status.visibility == .direct {
         theme.tintColor.opacity(0.15)
-      } else if status.mentions.first(where: { $0.id == CurrentAccount.shared.account?.id }) != nil
+      } else if status.mentions.first(where: { $0.id == currentAccount.account?.id }) != nil
       {
         theme.secondaryBackgroundColor
       } else {

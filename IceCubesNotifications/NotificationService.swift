@@ -221,8 +221,8 @@ actor NotificationServiceContentProvider {
 
   @MainActor
   private func updateBadgeCoung(notification: MastodonPushNotification) -> Int {
-    let preferences = UserPreferences.shared
-    let tokens = AppAccountsManager.shared.pushAccounts.map(\.token)
+    let preferences = UserPreferences()
+    let tokens = AppAccountsManager().pushAccounts.map(\.token)
     preferences.reloadNotificationsCount(tokens: tokens)
 
     if let token = keychainAccounts.first(where: {

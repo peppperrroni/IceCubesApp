@@ -4,18 +4,19 @@ import CoreHaptics
 import UIKit
 
 @MainActor
+@Observable
 public class SoundEffectManager {
-  public static let shared: SoundEffectManager = .init()
 
   public enum SoundEffect: String, CaseIterable {
     case pull, refresh, tootSent, tabSelection, bookmark, boost, favorite, share
   }
 
-  private var systemSoundIDs: [SoundEffect: SystemSoundID] = [:]
+  @ObservationIgnored private var systemSoundIDs: [SoundEffect: SystemSoundID] = [:]
 
-  private let userPreferences = UserPreferences.shared
+  private let userPreferences: UserPreferences
 
-  private init() {
+  public init(userPreferences: UserPreferences) {
+    self.userPreferences = userPreferences
     registerSounds()
   }
 

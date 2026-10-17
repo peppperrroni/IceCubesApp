@@ -123,7 +123,8 @@ enum AppTab: Identifiable, Hashable, CaseIterable, Codable {
   func makeContentView(
     homeTimeline: Binding<TimelineFilter>,
     selectedTab: Binding<AppTab>,
-    pinnedFilters: Binding<[TimelineFilter]>
+    pinnedFilters: Binding<[TimelineFilter]>,
+    statusDataControllerProvider: StatusDataControllerProvider
   ) -> some View {
     switch self {
     case let .anyTimelineFilter(filter):
@@ -152,11 +153,11 @@ enum AppTab: Identifiable, Hashable, CaseIterable, Codable {
         .rootTabScrollEdgeEffect()
     case .bookmarks:
       NavigationTab {
-        AccountStatusesListView(mode: .bookmarks)
+        AccountStatusesListView(mode: .bookmarks, statusDataControllerProvider: statusDataControllerProvider)
       }
     case .favorites:
       NavigationTab {
-        AccountStatusesListView(mode: .favorites)
+        AccountStatusesListView(mode: .favorites, statusDataControllerProvider: statusDataControllerProvider)
       }
     case .metrics:
       NavigationTab {
@@ -352,7 +353,7 @@ enum SidebarSections: Int, Identifiable {
     }
   }
   
-  var tabs: [AppTab] {
+  func tabs(currentAccount: CurrentAccount) -> [AppTab] {
     switch self {
     case .timeline:
       return [.timeline, .trending, .local, .federated, .links, .explore]
@@ -369,9 +370,9 @@ enum SidebarSections: Int, Identifiable {
     case .visionOSTabs:
       return AppTab.visionOSTab()
     case .lists:
-      return CurrentAccount.shared.lists.map { .anyTimelineFilter(filter: .list(list: $0)) }
+      return currentAccount.lists.map { .anyTimelineFilter(filter: .list(list: $0)) }
     case .tags:
-      return CurrentAccount.shared.tags.map { .anyTimelineFilter(filter: .hashtag(tag: $0.name, accountId: nil)) }
+      return currentAccount.tags.map { .anyTimelineFilter(filter: .hashtag(tag: $0.name, accountId: nil)) }
     case .localTimeline, .tagGroup:
       return []
     }

@@ -37,9 +37,12 @@ public struct AccountStatusesListView: View {
   @State private var isLoaded = false
   @State private var fetcher: AccountStatusesFetcher
 
-  public init(mode: Mode) {
+  private let statusDataControllerProvider: StatusDataControllerProvider
+
+  public init(mode: Mode, statusDataControllerProvider: StatusDataControllerProvider) {
     self.mode = mode
-    _fetcher = .init(initialValue: AccountStatusesFetcher(mode: mode))
+    self.statusDataControllerProvider = statusDataControllerProvider
+    _fetcher = .init(initialValue: AccountStatusesFetcher(mode: mode, statusDataControllerProvider: statusDataControllerProvider))
   }
 
   public var body: some View {
@@ -65,7 +68,7 @@ public struct AccountStatusesListView: View {
     }
     .onChange(of: client.id) { _, _ in
       isLoaded = false
-      fetcher = AccountStatusesFetcher(mode: mode)
+      fetcher = AccountStatusesFetcher(mode: mode, statusDataControllerProvider: statusDataControllerProvider)
       fetcher.client = client
       Task {
         await fetcher.fetchNewestStatuses(pullToRefresh: false)

@@ -6,6 +6,7 @@ import SwiftUI
 
 @MainActor
 struct NavigationTab<Content: View>: View {
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
   @Environment(\.isSecondaryColumn) private var isSecondaryColumn: Bool
 
   @Environment(AppAccountsManager.self) private var appAccount
@@ -40,6 +41,7 @@ struct NavigationTab<Content: View>: View {
         }
         .onAppear {
           routerPath.client = client
+          routerPath.statusEmbedCache = statusEmbedCache
         }
         .withSafariRouter()
     }

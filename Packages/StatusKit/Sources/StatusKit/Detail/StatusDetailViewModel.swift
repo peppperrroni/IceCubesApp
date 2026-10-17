@@ -11,6 +11,7 @@ import SwiftUI
 
   var client: MastodonClient?
   var routerPath: RouterPath?
+  private let statusDataControllerProvider: StatusDataControllerProvider
 
   enum State {
     case loading
@@ -25,13 +26,15 @@ import SwiftUI
   @ObservationIgnored
   var indentationLevelPreviousCache: [String: UInt] = [:]
 
-  init(statusId: String) {
+  init(statusId: String, statusDataControllerProvider: StatusDataControllerProvider) {
+    self.statusDataControllerProvider = statusDataControllerProvider
     state = .loading
     self.statusId = statusId
     remoteStatusURL = nil
   }
 
-  init(status: Status) {
+  init(status: Status, statusDataControllerProvider: StatusDataControllerProvider) {
+    self.statusDataControllerProvider = statusDataControllerProvider
     state = .display(statuses: [status])
     title = "status.post-from-\(status.account.displayNameWithoutEmojis)"
     statusId = status.id
@@ -41,7 +44,8 @@ import SwiftUI
     }
   }
 
-  init(remoteStatusURL: URL) {
+  init(remoteStatusURL: URL, statusDataControllerProvider: StatusDataControllerProvider) {
+    self.statusDataControllerProvider = statusDataControllerProvider
     state = .loading
     self.remoteStatusURL = remoteStatusURL
     statusId = nil
@@ -89,7 +93,7 @@ import SwiftUI
       statuses.append(data.status)
       statuses.append(contentsOf: data.context.descendants)
       cacheReplyTopPrevious(statuses: statuses)
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
 
       if animate {
         withAnimation {

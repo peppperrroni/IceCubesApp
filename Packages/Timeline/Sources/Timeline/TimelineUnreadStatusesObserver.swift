@@ -7,6 +7,7 @@ import SwiftUI
 
 @MainActor
 @Observable class TimelineUnreadStatusesObserver {
+  private let hapticManager: HapticManager
   var pendingStatusesCount: Int = 0
 
   var disableUpdate: Bool = false
@@ -24,11 +25,13 @@ import SwiftUI
   func removeStatus(status: Status) {
     if !disableUpdate, let index = pendingStatuses.firstIndex(of: status.id) {
       pendingStatuses.removeSubrange(index...(pendingStatuses.count - 1))
-      HapticManager.shared.fireHaptic(.timeline)
+      hapticManager.fireHaptic(.timeline)
     }
   }
 
-  init() {}
+  init(hapticManager: HapticManager) {
+    self.hapticManager = hapticManager
+  }
 }
 
 struct TimelineUnreadStatusesView: View {

@@ -107,7 +107,8 @@ import SwiftUI
   }
 
   public static let sharedDefault = UserDefaults(suiteName: "group.com.thomasricouard.IceCubesApp")
-  public static let shared = UserPreferences()
+  /// shortcut: static helpers with no owner (DeepLUserAPIHandler) read this; the composition root installs it. Upgrade when those helpers get an owner.
+  public static var current: UserPreferences = UserPreferences()
   private let storage = Storage()
 
   private var client: MastodonClient?
@@ -526,7 +527,7 @@ import SwiftUI
     }
   }
 
-  private init() {
+  public init() {
     preferredBrowser = storage.preferredBrowser
     showTranslateButton = storage.showTranslateButton
     recentlyUsedLanguages = storage.recentlyUsedLanguages

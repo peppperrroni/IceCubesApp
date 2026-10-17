@@ -26,10 +26,20 @@ extension View {
     appIntentService: AppIntentService,
     quickLook: QuickLook,
     toastCenter: ToastCenter,
+    hapticManager: HapticManager,
+    soundEffectManager: SoundEffectManager,
+    statusEmbedCache: StatusEmbedCache,
+    statusDataControllerProvider: StatusDataControllerProvider,
+    timelineContentFilter: TimelineContentFilter,
     namespace: Namespace.ID,
     isSupporter: Bool
   ) -> some View {
     environment(appAccountsManager)
+      .environment(hapticManager)
+      .environment(soundEffectManager)
+      .environment(statusEmbedCache)
+      .environment(statusDataControllerProvider)
+      .environment(timelineContentFilter)
       .environment(appAccountsManager.currentClient)
       .environment(quickLook)
       .environment(currentAccount)
@@ -63,7 +73,68 @@ extension View {
   }
 
   func withAppRouter() -> some View {
-    navigationDestination(for: RouterDestination.self) { destination in
+    modifier(AppRouter())
+  }
+
+  func withSheetDestinations(
+    sheetDestinations: Binding<SheetDestination?>,
+    routerPath: RouterPath
+  ) -> some View {
+    modifier(SheetDestinations(sheetDestinations: sheetDestinations, routerPath: routerPath))
+  }
+
+  /// Re-applies the environment objects already in scope (sheets and nested stacks keep them).
+  func withEnvironments() -> some View {
+    modifier(ReinjectEnvironments())
+  }
+
+  /// For scenes that do not inherit the main window's environment.
+  func withEnvironments(_ deps: AppDependencies) -> some View {
+    environment(deps.currentAccount)
+      .environment(deps.userPreferences)
+      .environment(deps.currentInstance)
+      .environment(deps.theme)
+      .environment(deps.appAccountsManager)
+      .environment(deps.pushNotificationsService)
+      .environment(deps.appAccountsManager.currentClient)
+      .environment(deps.quickLook)
+      .environment(deps.toastCenter)
+      .environment(deps.hapticManager)
+      .environment(deps.soundEffectManager)
+      .environment(deps.statusEmbedCache)
+      .environment(deps.statusDataControllerProvider)
+      .environment(deps.timelineContentFilter)
+  }
+
+  func withModelContainer() -> some View {
+    modelContainer(for: [
+      Draft.self,
+      LocalTimeline.self,
+      TagGroup.self,
+      RecentTag.self,
+      MetricsNotificationGroup.self,
+    ])
+  }
+}
+
+
+private struct AppRouter: ViewModifier {
+  @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(CurrentInstance.self) private var currentInstance
+  @Environment(AppAccountsManager.self) private var appAccountsManager
+  @Environment(PushNotificationsService.self) private var pushNotificationsService
+  @Environment(StreamWatcher.self) private var watcher
+  @Environment(QuickLook.self) private var quickLook
+  @Environment(ToastCenter.self) private var toastCenter
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(TimelineContentFilter.self) private var timelineContentFilter
+
+  func body(content: Content) -> some View {
+    content.navigationDestination(for: RouterDestination.self) { destination in
       switch destination {
       case .accountDetail(let id):
         AccountDetailView(accountId: id)
@@ -74,11 +145,11 @@ extension View {
       case .accountMediaGridView(let account, let initialMedia):
         AccountDetailMediaGridView(account: account, initialMediaStatuses: initialMedia)
       case .statusDetail(let id):
-        StatusDetailView(statusId: id)
+        StatusDetailView(statusId: id, statusDataControllerProvider: statusDataControllerProvider)
       case .statusDetailWithStatus(let status):
-        StatusDetailView(status: status)
+        StatusDetailView(status: status, statusDataControllerProvider: statusDataControllerProvider)
       case .remoteStatusDetail(let url):
-        StatusDetailView(remoteStatusURL: url)
+        StatusDetailView(remoteStatusURL: url, statusDataControllerProvider: statusDataControllerProvider)
       case .conversationDetail(let conversation):
         ConversationDetailView(conversation: conversation)
       case .hashTag(let tag, let accountId):
@@ -86,13 +157,17 @@ extension View {
           timeline: .constant(.hashtag(tag: tag, accountId: accountId)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false)
+          canFilterTimeline: false,
+          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
       case .list(let list):
         TimelineView(
           timeline: .constant(.list(list: list)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false)
+          canFilterTimeline: false,
+          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
       case .collectionDetail(let collection):
         CollectionDetailView(collection: collection)
       case .linkTimeline(let url, let title):
@@ -100,13 +175,17 @@ extension View {
           timeline: .constant(.link(url: url, title: title)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false)
+          canFilterTimeline: false,
+          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
       case .quotes(let id):
         TimelineView(
           timeline: .constant(.quotes(statusId: id)),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false)
+          canFilterTimeline: false,
+          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
       case .following(let id):
         AccountsListView(mode: .following(accountId: id))
       case .followers(let id):
@@ -122,7 +201,9 @@ extension View {
           timeline: .constant(.trending),
           pinnedFilters: .constant([]),
           selectedTagGroup: .constant(nil),
-          canFilterTimeline: false)
+          canFilterTimeline: false,
+          userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
+          watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager)
       case .trendingLinks(let cards):
         TrendingLinksListView(cards: cards)
       case .tagsList(let tags):
@@ -132,7 +213,8 @@ extension View {
       case .notificationForAccount(let accountId):
         NotificationsListView(
           lockedType: nil,
-          lockedAccountId: accountId)
+          lockedAccountId: accountId,
+          currentInstance: currentInstance)
       case .blockedAccounts:
         AccountsListView(mode: .blocked)
       case .mutedAccounts:
@@ -146,12 +228,27 @@ extension View {
       }
     }
   }
+}
 
-  func withSheetDestinations(
-    sheetDestinations: Binding<SheetDestination?>,
-    routerPath: RouterPath
-  ) -> some View {
-    sheet(item: sheetDestinations) { destination in
+private struct SheetDestinations: ViewModifier {
+  let sheetDestinations: Binding<SheetDestination?>
+  let routerPath: RouterPath
+  @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(CurrentInstance.self) private var currentInstance
+  @Environment(AppAccountsManager.self) private var appAccountsManager
+  @Environment(PushNotificationsService.self) private var pushNotificationsService
+  @Environment(StreamWatcher.self) private var watcher
+  @Environment(QuickLook.self) private var quickLook
+  @Environment(ToastCenter.self) private var toastCenter
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(TimelineContentFilter.self) private var timelineContentFilter
+
+  func body(content: Content) -> some View {
+    content.sheet(item: sheetDestinations) { destination in
       Group {
         switch destination {
         case .replyToStatusEditor(let status):
@@ -185,7 +282,7 @@ extension View {
           ListCreateView()
             .withEnvironments()
         case .listEdit(let list):
-          ListEditView(list: list)
+          ListEditView(list: list, currentAccount: currentAccount)
             .withEnvironments()
         case .listAddAccount(let account):
           ListAddAccountView(account: account)
@@ -205,10 +302,10 @@ extension View {
         case .settings:
           SettingsTabs(isModal: true)
             .withEnvironments()
-            .preferredColorScheme(Theme.shared.selectedScheme == .dark ? .dark : .light)
+            .preferredColorScheme(theme.selectedScheme == .dark ? .dark : .light)
         case .accountPushNotficationsSettings:
-          if let subscription = PushNotificationsService.shared.subscriptions.first(where: {
-            $0.account.token == AppAccountsManager.shared.currentAccount.oauthToken
+          if let subscription = pushNotificationsService.subscriptions.first(where: {
+            $0.account.token == appAccountsManager.currentAccount.oauthToken
           }) {
             NavigationSheet { PushNotificationsView(subscription: subscription) }
               .withEnvironments()
@@ -244,29 +341,37 @@ extension View {
       .environment(routerPath)
     }
   }
+}
 
-  func withEnvironments() -> some View {
-    environment(CurrentAccount.shared)
-      .environment(UserPreferences.shared)
-      .environment(CurrentInstance.shared)
-      .environment(Theme.shared)
-      .environment(AppAccountsManager.shared)
-      .environment(PushNotificationsService.shared)
-      .environment(AppAccountsManager.shared.currentClient)
-      .environment(QuickLook.shared)
-      .environment(ToastCenter.shared)
-  }
+private struct ReinjectEnvironments: ViewModifier {
+  @Environment(Theme.self) private var theme
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(CurrentInstance.self) private var currentInstance
+  @Environment(AppAccountsManager.self) private var appAccountsManager
+  @Environment(PushNotificationsService.self) private var pushNotificationsService
+  @Environment(StreamWatcher.self) private var watcher
+  @Environment(QuickLook.self) private var quickLook
+  @Environment(ToastCenter.self) private var toastCenter
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
+  @Environment(TimelineContentFilter.self) private var timelineContentFilter
 
-  func withModelContainer() -> some View {
-    modelContainer(for: [
-      Draft.self,
-      LocalTimeline.self,
-      TagGroup.self,
-      RecentTag.self,
-      MetricsNotificationGroup.self,
-    ])
+  func body(content: Content) -> some View {
+    content
+      .environment(currentAccount)
+      .environment(userPreferences)
+      .environment(currentInstance)
+      .environment(theme)
+      .environment(appAccountsManager)
+      .environment(pushNotificationsService)
+      .environment(appAccountsManager.currentClient)
+      .environment(quickLook)
+      .environment(toastCenter)
   }
 }
+
 
 struct ActivityView: UIViewControllerRepresentable {
   let image: UIImage

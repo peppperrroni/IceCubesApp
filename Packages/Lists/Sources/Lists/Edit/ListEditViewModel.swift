@@ -25,7 +25,10 @@ import SwiftUI
   var searchedRelationships: [String: Relationship] = [:]
   var isSearching: Bool = false
 
-  init(list: Models.List) {
+  private let currentAccount: CurrentAccount
+
+  init(list: Models.List, currentAccount: CurrentAccount) {
+    self.currentAccount = currentAccount
     self.list = list
     title = list.title
     repliesPolicy = list.repliesPolicy ?? .list
@@ -59,7 +62,7 @@ import SwiftUI
       repliesPolicy = list.repliesPolicy ?? .list
       isExclusive = list.exclusive ?? false
       isUpdating = false
-      await CurrentAccount.shared.fetchLists()
+      await currentAccount.fetchLists()
     } catch {
       isUpdating = false
     }

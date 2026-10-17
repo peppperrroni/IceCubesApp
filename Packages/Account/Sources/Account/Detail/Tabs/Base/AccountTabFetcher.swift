@@ -15,7 +15,10 @@ class AccountTabFetcher: StatusesFetcher {
   var statusesState: StatusesState = .loading
   var statuses: [Status] = []
   
-  init(accountId: String, client: MastodonClient, isCurrentUser: Bool) {
+  let statusDataControllerProvider: StatusDataControllerProvider
+
+  init(accountId: String, client: MastodonClient, isCurrentUser: Bool, statusDataControllerProvider: StatusDataControllerProvider) {
+    self.statusDataControllerProvider = statusDataControllerProvider
     self.accountId = accountId
     self.client = client
     self.isCurrentUser = isCurrentUser
@@ -52,7 +55,7 @@ class AccountTabFetcher: StatusesFetcher {
       statusesState = .display(statuses: statuses, nextPageState: .hasNextPage)
     } else if let event = event as? StreamEventStatusUpdate {
       if let originalIndex = statuses.firstIndex(where: { $0.id == event.status.id }) {
-        StatusDataControllerProvider.shared.updateDataControllers(
+        statusDataControllerProvider.updateDataControllers(
           for: [event.status], client: client)
         statuses[originalIndex] = event.status
         statusesState = .display(statuses: statuses, nextPageState: .hasNextPage)

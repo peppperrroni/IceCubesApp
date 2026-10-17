@@ -179,5 +179,5 @@ public struct AccountsListView: View {
   }
   .listStyle(.plain)
   .withPreviewsEnv()
-  .environment(Theme.shared)
+  .environment(Theme())
 }

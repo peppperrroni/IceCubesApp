@@ -6,6 +6,8 @@ import SwiftUI
 
 @MainActor
 public struct ConversationsListView: View {
+  @Environment(SoundEffectManager.self) private var soundEffectManager
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(UserPreferences.self) private var preferences
   @Environment(RouterPath.self) private var routerPath
   @Environment(StreamWatcher.self) private var watcher
@@ -39,11 +41,11 @@ public struct ConversationsListView: View {
       // note: this Task wrapper should not be necessary, but it reportedly crashes without it
       // when refreshing on an empty list
       Task {
-        SoundEffectManager.shared.playSound(.pull)
-        HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.3))
+        soundEffectManager.playSound(.pull)
+        hapticManager.fireHaptic(.dataRefresh(intensity: 0.3))
         await fetchConversations()
-        HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.7))
-        SoundEffectManager.shared.playSound(.refresh)
+        hapticManager.fireHaptic(.dataRefresh(intensity: 0.7))
+        soundEffectManager.playSound(.refresh)
       }
     }
     .onAppear {

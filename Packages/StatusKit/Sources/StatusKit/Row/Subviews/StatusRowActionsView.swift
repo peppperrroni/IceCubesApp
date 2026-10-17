@@ -6,6 +6,11 @@ import SwiftUI
 
 @MainActor
 struct StatusRowActionsView: View {
+  @Environment(QuickLook.self) private var quickLook
+  @Environment(CurrentInstance.self) private var currentInstance
+  @Environment(ToastCenter.self) private var toastCenter
+  @Environment(HapticManager.self) private var hapticManager
+  @Environment(SoundEffectManager.self) private var soundEffectManager
   @Environment(Theme.self) private var theme
   @Environment(CurrentAccount.self) private var currentAccount
   @Environment(StatusDataController.self) private var statusDataController
@@ -295,15 +300,15 @@ struct StatusRowActionsView: View {
     }
     .environment(\.isInCaptureMode, true)
     .environment(RouterPath())
-    .environment(QuickLook.shared)
+    .environment(quickLook)
     .environment(theme)
     .environment(client)
     .environment(sceneDelegate)
-    .environment(UserPreferences.shared)
-    .environment(CurrentAccount.shared)
-    .environment(CurrentInstance.shared)
+    .environment(userPreferences)
+    .environment(currentAccount)
+    .environment(currentInstance)
     .environment(statusDataController)
-    .environment(ToastCenter.shared)
+    .environment(toastCenter)
     .preferredColorScheme(theme.selectedScheme == .dark ? .dark : .light)
     .foregroundColor(theme.labelColor)
     .background(theme.primaryBackgroundColor)
@@ -360,10 +365,10 @@ struct StatusRowActionsView: View {
           return
         }
       }
-      HapticManager.shared.fireHaptic(.notification(.success))
+      hapticManager.fireHaptic(.notification(.success))
       switch action {
       case .respond:
-        SoundEffectManager.shared.playSound(.share)
+        soundEffectManager.playSound(.share)
         #if targetEnvironment(macCatalyst) || os(visionOS)
           openWindow(
             value: WindowDestinationEditor.replyToStatusEditor(
@@ -373,16 +378,16 @@ struct StatusRowActionsView: View {
             status: viewModel.localStatus ?? viewModel.status)
         #endif
       case .favorite:
-        SoundEffectManager.shared.playSound(.favorite)
+        soundEffectManager.playSound(.favorite)
         await statusDataController.toggleFavorite(remoteStatus: viewModel.localStatusId)
       case .bookmark:
-        SoundEffectManager.shared.playSound(.bookmark)
+        soundEffectManager.playSound(.bookmark)
         await statusDataController.toggleBookmark(remoteStatus: viewModel.localStatusId)
       case .boost:
-        SoundEffectManager.shared.playSound(.boost)
+        soundEffectManager.playSound(.boost)
         await statusDataController.toggleReblog(remoteStatus: viewModel.localStatusId)
       case .quote:
-        SoundEffectManager.shared.playSound(.boost)
+        soundEffectManager.playSound(.boost)
         #if targetEnvironment(macCatalyst) || os(visionOS)
           openWindow(value: WindowDestinationEditor.quoteStatusEditor(status: viewModel.status))
         #else

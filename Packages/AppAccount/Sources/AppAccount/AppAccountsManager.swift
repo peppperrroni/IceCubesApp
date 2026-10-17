@@ -27,9 +27,7 @@ import SwiftUI
       .map { .init(server: $0.server, token: $0.oauthToken!, accountName: $0.accountName) }
   }
 
-  public static var shared = AppAccountsManager()
-
-  init() {
+  public init() {
     var defaultAccount = AppAccount(
       server: AppInfo.defaultServer, accountName: nil, oauthToken: nil)
     let keychainAccounts = AppAccount.retrieveAll()

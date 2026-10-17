@@ -6,6 +6,10 @@ import Models
 import DesignSystem
 
 struct AnyStatusesListView: View {
+  @Environment(UserPreferences.self) private var userPreferences
+  @Environment(CurrentAccount.self) private var currentAccount
+  @Environment(StatusEmbedCache.self) private var statusEmbedCache
+  @Environment(StreamWatcher.self) private var watcher
   let fetcher: any StatusesFetcher
   let client: MastodonClient
   let routerPath: RouterPath
@@ -21,7 +25,8 @@ struct AnyStatusesListView: View {
             status: status,
             client: client,
             routerPath: routerPath,
-            filterContext: .account)
+            filterContext: .account,
+              theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
         )
         .redacted(reason: .placeholder)
         .allowsHitTesting(false)
@@ -33,7 +38,8 @@ struct AnyStatusesListView: View {
             status: status,
             client: client,
             routerPath: routerPath,
-            filterContext: .account)
+            filterContext: .account,
+              theme: theme, userPreferences: userPreferences, currentAccount: currentAccount, statusEmbedCache: statusEmbedCache, watcher: watcher)
         )
       }
       

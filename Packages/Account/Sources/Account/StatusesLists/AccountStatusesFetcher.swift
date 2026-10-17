@@ -13,8 +13,11 @@ class AccountStatusesFetcher: StatusesFetcher {
   var nextPage: LinkHandler?
   var client: MastodonClient?
 
-  init(mode: AccountStatusesListView.Mode) {
+  private let statusDataControllerProvider: StatusDataControllerProvider
+
+  init(mode: AccountStatusesListView.Mode, statusDataControllerProvider: StatusDataControllerProvider) {
     self.mode = mode
+    self.statusDataControllerProvider = statusDataControllerProvider
   }
 
   func fetchNewestStatuses(pullToRefresh: Bool) async {
@@ -22,7 +25,7 @@ class AccountStatusesFetcher: StatusesFetcher {
     statusesState = .loading
     do {
       (statuses, nextPage) = try await client.getWithLink(endpoint: mode.endpoint(sinceId: nil))
-      StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+      statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
       statusesState = .display(
         statuses: statuses,
         nextPageState: nextPage?.maxId != nil ? .hasNextPage : .none)
@@ -36,7 +39,7 @@ class AccountStatusesFetcher: StatusesFetcher {
     var newStatuses: [Status] = []
     (newStatuses, nextPage) = try await client.getWithLink(endpoint: mode.endpoint(sinceId: nextId))
     statuses.append(contentsOf: newStatuses)
-    StatusDataControllerProvider.shared.updateDataControllers(for: statuses, client: client)
+    statusDataControllerProvider.updateDataControllers(for: statuses, client: client)
     statusesState = .display(
       statuses: statuses,
       nextPageState: nextPage?.maxId != nil ? .hasNextPage : .none)

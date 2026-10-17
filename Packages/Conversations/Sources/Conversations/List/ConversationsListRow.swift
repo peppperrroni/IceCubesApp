@@ -6,6 +6,7 @@ import SwiftUI
 
 @MainActor
 struct ConversationsListRow: View {
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.openWindow) private var openWindow
 
   @Environment(MastodonClient.self) private var client
@@ -83,7 +84,7 @@ struct ConversationsListRow: View {
     }
     .accessibilityAction(.magicTap) {
       if let lastStatus = conversation.lastStatus {
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager.fireHaptic(.notification(.success))
         #if targetEnvironment(macCatalyst) || os(visionOS)
           openWindow(value: WindowDestinationEditor.replyToStatusEditor(status: lastStatus))
         #else
@@ -101,7 +102,7 @@ struct ConversationsListRow: View {
     .swipeActions(edge: .leading, allowsFullSwipe: true) {
       Button {
         if let lastStatus = conversation.lastStatus {
-          HapticManager.shared.fireHaptic(.notification(.success))
+          hapticManager.fireHaptic(.notification(.success))
           #if targetEnvironment(macCatalyst) || os(visionOS)
             openWindow(value: WindowDestinationEditor.replyToStatusEditor(status: lastStatus))
           #else
@@ -216,7 +217,7 @@ struct ConversationsListRow: View {
   var replyAction: some View {
     if let lastStatus = conversation.lastStatus {
       Button("status.action.reply") {
-        HapticManager.shared.fireHaptic(.notification(.success))
+        hapticManager.fireHaptic(.notification(.success))
         routerPath.presentedSheet = .replyToStatusEditor(status: lastStatus)
       }
     } else {
@@ -229,7 +230,7 @@ struct ConversationsListRow: View {
     if let lastStatus = conversation.lastStatus {
       if lastStatus.account.id != currentAccount.account?.id {
         Button("@\(lastStatus.account.username)") {
-          HapticManager.shared.fireHaptic(.notification(.success))
+          hapticManager.fireHaptic(.notification(.success))
           routerPath.navigate(to: .accountDetail(id: lastStatus.account.id))
         }
       }
@@ -239,18 +240,18 @@ struct ConversationsListRow: View {
         case .url:
           if UIApplication.shared.canOpenURL(link.url) {
             Button("accessibility.tabs.timeline.content-link-\(link.title)") {
-              HapticManager.shared.fireHaptic(.notification(.success))
+              hapticManager.fireHaptic(.notification(.success))
               _ = routerPath.handle(url: link.url)
             }
           }
         case .hashtag:
           Button("accessibility.tabs.timeline.content-hashtag-\(link.title)") {
-            HapticManager.shared.fireHaptic(.notification(.success))
+            hapticManager.fireHaptic(.notification(.success))
             _ = routerPath.handle(url: link.url)
           }
         case .mention:
           Button("\(link.title)") {
-            HapticManager.shared.fireHaptic(.notification(.success))
+            hapticManager.fireHaptic(.notification(.success))
             _ = routerPath.handle(url: link.url)
           }
         }

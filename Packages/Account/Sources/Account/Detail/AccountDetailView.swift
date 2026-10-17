@@ -8,11 +8,14 @@ import SwiftUI
 
 @MainActor
 public struct AccountDetailView: View {
+  @Environment(SoundEffectManager.self) private var soundEffectManager
+  @Environment(HapticManager.self) private var hapticManager
   @Environment(\.openURL) private var openURL
   @Environment(\.redactionReasons) private var reasons
   @Environment(\.openWindow) private var openWindow
 
   @Environment(StreamWatcher.self) private var watcher
+  @Environment(StatusDataControllerProvider.self) private var statusDataControllerProvider
   @Environment(CurrentAccount.self) private var currentAccount
   @Environment(CurrentInstance.self) private var currentInstance
   @Environment(UserPreferences.self) private var preferences
@@ -103,7 +106,8 @@ public struct AccountDetailView: View {
         tabManager = AccountTabManager(
           accountId: accountId,
           client: client,
-          isCurrentUser: isCurrentUser
+          isCurrentUser: isCurrentUser,
+          statusDataControllerProvider: statusDataControllerProvider
         )
       }
 
@@ -135,15 +139,15 @@ public struct AccountDetailView: View {
     }
     .refreshable {
       Task {
-        SoundEffectManager.shared.playSound(.pull)
-        HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.3))
+        soundEffectManager.playSound(.pull)
+        hapticManager.fireHaptic(.dataRefresh(intensity: 0.3))
         await fetchAccount()
         await fetchCollections()
         if let tabManager {
           await tabManager.refreshCurrentTab()
         }
-        HapticManager.shared.fireHaptic(.dataRefresh(intensity: 0.7))
-        SoundEffectManager.shared.playSound(.refresh)
+        hapticManager.fireHaptic(.dataRefresh(intensity: 0.7))
+        soundEffectManager.playSound(.refresh)
       }
     }
     .onChange(of: watcher.latestEvent?.id) {

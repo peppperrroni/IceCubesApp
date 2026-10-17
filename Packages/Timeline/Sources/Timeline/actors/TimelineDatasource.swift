@@ -3,7 +3,12 @@ import Foundation
 import Models
 
 actor TimelineDatasource {
+  private let contentFilter: TimelineContentFilter
   private var items: [TimelineItem] = []
+
+  init(contentFilter: TimelineContentFilter) {
+    self.contentFilter = contentFilter
+  }
   private var filterContext: Filter.Context?
 
   var isEmpty: Bool {
@@ -24,7 +29,6 @@ actor TimelineDatasource {
   }
 
   func getFiltered() async -> [Status] {
-    let contentFilter = await TimelineContentFilter.shared
     let snapshot = await contentFilter.snapshot()
     var filtered: [Status] = []
     for item in items {
@@ -37,7 +41,6 @@ actor TimelineDatasource {
   }
 
   func getFilteredItems() async -> [TimelineItem] {
-    let contentFilter = await TimelineContentFilter.shared
     let snapshot = await contentFilter.snapshot()
     var filtered: [TimelineItem] = []
     for item in items {
