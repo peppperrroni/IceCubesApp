@@ -40,7 +40,7 @@ struct IceCubesApp: App {
 
   init() {
     let benchDeps = deps  // local copy: the closure must not capture self during init
-    BenchHooks.start { BenchResolve.resolveAll(benchDeps) }
+    BenchHooks.start(resolve: { BenchResolve.resolveAll(benchDeps) }, scopes: BenchResolve.scopeAccess(benchDeps))
     _appAccountsManager = State(initialValue: deps.appAccountsManager)
     _userPreferences = State(initialValue: deps.userPreferences)
     _pushNotificationsService = State(initialValue: deps.pushNotificationsService)
