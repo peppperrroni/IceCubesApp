@@ -6,8 +6,7 @@ enum BenchResolve {
   static func resolveAll(_ deps: AppDependencies) {
     BenchHooks.sink([
       deps.theme, deps.userPreferences, deps.hapticManager, deps.soundEffectManager,
-      deps.appAccountsManager, deps.currentInstance, deps.currentAccount,
-      deps.pushNotificationsService, deps.streamWatcher, deps.quickLook, deps.toastCenter,
+      deps.appAccountsManager, deps.pushNotificationsService, deps.quickLook, deps.toastCenter,
       deps.statusEmbedCache, deps.statusDataControllerProvider, deps.timelineContentFilter,
     ])
   }

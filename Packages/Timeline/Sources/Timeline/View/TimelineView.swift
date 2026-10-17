@@ -42,16 +42,9 @@ public struct TimelineView: View {
     pinnedFilters: Binding<[TimelineFilter]>,
     selectedTagGroup: Binding<TagGroup?>,
     canFilterTimeline: Bool,
-    userPreferences: UserPreferences,
-    statusDataControllerProvider: StatusDataControllerProvider,
-    watcher: StreamWatcher,
-    timelineContentFilter: TimelineContentFilter,
-    hapticManager: HapticManager
+    feature: TimelineFeatureScope
   ) {
-    _viewModel = State(
-      initialValue: TimelineViewModel(
-        userPreferences: userPreferences, statusDataControllerProvider: statusDataControllerProvider,
-        watcher: watcher, timelineContentFilter: timelineContentFilter, hapticManager: hapticManager))
+    _viewModel = State(initialValue: feature.viewModel)
     _timeline = timeline
     _pinnedFilters = pinnedFilters
     _selectedTagGroup = selectedTagGroup

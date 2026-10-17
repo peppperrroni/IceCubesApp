@@ -24,12 +24,9 @@ struct IceCubesApp: App {
 
   let deps = AppDependencies()
   @State var appAccountsManager: AppAccountsManager
-  @State var currentInstance: CurrentInstance
-  @State var currentAccount: CurrentAccount
   @State var userPreferences: UserPreferences
   @State var pushNotificationsService: PushNotificationsService
   @State var appIntentService = AppIntentService.shared
-  @State var watcher: StreamWatcher
   @State var quickLook: QuickLook
   @State var theme: DesignSystem.Theme
   @State var toastCenter: ToastCenter
@@ -45,11 +42,8 @@ struct IceCubesApp: App {
     let benchDeps = deps  // local copy: the closure must not capture self during init
     BenchHooks.start { BenchResolve.resolveAll(benchDeps) }
     _appAccountsManager = State(initialValue: deps.appAccountsManager)
-    _currentInstance = State(initialValue: deps.currentInstance)
-    _currentAccount = State(initialValue: deps.currentAccount)
     _userPreferences = State(initialValue: deps.userPreferences)
     _pushNotificationsService = State(initialValue: deps.pushNotificationsService)
-    _watcher = State(initialValue: deps.streamWatcher)
     _quickLook = State(initialValue: deps.quickLook)
     _theme = State(initialValue: deps.theme)
     _toastCenter = State(initialValue: deps.toastCenter)
@@ -69,10 +63,7 @@ struct IceCubesApp: App {
 
   func handleScenePhase(scenePhase: ScenePhase) {
     switch scenePhase {
-    case .background:
-      watcher.stopWatching()
     case .active:
-      watcher.watch(streams: [.user, .direct])
       UNUserNotificationCenter.current().setBadgeCount(0)
       userPreferences.reloadNotificationsCount(
         tokens: appAccountsManager.availableAccounts.compactMap(\.oauthToken))

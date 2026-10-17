@@ -15,10 +15,7 @@ struct AppDependencies {
   let hapticManager: HapticManager
   let soundEffectManager: SoundEffectManager
   let appAccountsManager: AppAccountsManager
-  let currentInstance: CurrentInstance
-  let currentAccount: CurrentAccount
   let pushNotificationsService: PushNotificationsService
-  let streamWatcher: StreamWatcher
   let quickLook: QuickLook
   let toastCenter: ToastCenter
   let statusEmbedCache: StatusEmbedCache
@@ -31,10 +28,7 @@ struct AppDependencies {
     hapticManager = HapticManager(userPreferences: userPreferences)
     soundEffectManager = SoundEffectManager(userPreferences: userPreferences)
     appAccountsManager = AppAccountsManager()
-    currentInstance = CurrentInstance()
-    currentAccount = CurrentAccount()
     pushNotificationsService = PushNotificationsService(userPreferences: userPreferences)
-    streamWatcher = StreamWatcher()
     quickLook = QuickLook()
     toastCenter = ToastCenter()
     statusEmbedCache = StatusEmbedCache()
@@ -43,5 +37,10 @@ struct AppDependencies {
     // Static helpers with no owner (Font, layoutPadding, DeepL key) read these.
     Theme.current = theme
     UserPreferences.current = userPreferences
+  }
+
+  /// Session scope: one per current client (account switch, logout, login).
+  func makeSession(client: MastodonClient) -> SessionDependencies {
+    SessionDependencies(app: self, client: client)
   }
 }
