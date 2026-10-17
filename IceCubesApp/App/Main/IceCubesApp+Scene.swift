@@ -10,6 +10,7 @@ extension IceCubesApp {
       AppView(selectedTab: $selectedTab, appRouterPath: $appRouterPath)
         .applyTheme(theme)
         .onAppear {
+          BenchHooks.firstFrame()
           appDelegate.pushNotificationsService = deps.pushNotificationsService
           appDelegate.appAccountsManager = deps.appAccountsManager
           setupRevenueCat()
